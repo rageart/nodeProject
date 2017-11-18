@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>	
+	<% include ../common/viewerhead %>
+	<style>
+		.right {
+			float: right;
+		}
+		.colorBtn {
+			border: 0;
+			background-color: red;
+			width: 30px;
+			height: 30px;
+			vertical-align: middle;
+		}
+	</style>
+
+
+	<script>
+		var session_id = "<%=data.session%>";
+		var mVoIP = "<%=data.mVoIP%>";
+		var ARMemo = "<%=data.ARMemo%>";
+		var user_pw = "<%=data.userpw%>";
+		//var dec = "<%=data.default_control%>";
+		var rtsp_url = "<%=data.url%>";
+
+		var socket = io.connect();
+	    socket.on('pcClose', function(data) {
+	    	if(data == session_id) {
+	    		 window.close();
+	    	}
+	    });
+		var vod = 0;
+		function toggleFullScreen(elem) {
+			if ((document.fullScreenElement !== undefined && document.fullScreenElement === null) || (document.msFullscreenElement !== undefined && document.msFullscreenElement === null) || (document.mozFullScreen !== undefined && !document.mozFullScreen) || (document.webkitIsFullScreen !== undefined && !document.webkitIsFullScreen)) {
+				if (elem.requestFullScreen) {
+					elem.requestFullScreen();
+				} else if (elem.mozRequestFullScreen) {
+					elem.mozRequestFullScreen();
+				} else if (elem.webkitRequestFullScreen) {
+					elem.webkitRequestFullScreen(Element.ALLOW_KEYBOARD_INPUT);
+				} else if (elem.msRequestFullscreen) {
+					document.documentElement.msRequestFullscreen();
+				}
+			} else {
+				if (document.cancelFullScreen) {
+					document.cancelFullScreen();
+				} else if (document.mozCancelFullScreen) {
+					document.mozCancelFullScreen();
+				} else if (document.webkitCancelFullScreen) {
+					document.webkitCancelFullScreen();
+				} else if (document.msExitFullscreen) {
+					document.msExitFullscreen();
+				}
+			}
+		}
+		$(function(){
+			var $top = $('.pc-viewer').find('.logo');
+			var $left = $('.screen-list');
+
+			var $wideningBtn = $left.find('.btn-closed');
+			$wideningBtn.on('click', function(){
+				if($left.hasClass('on')){
+					$left.removeClass('on');
+					$top.animate({top:"0" }, 100);
+					$left.animate({left:"0" }, 100);
+					$('.pc-viewer').removeClass('on');
+					$('.screen-wrap').removeClass('big')
+				} else {
+					$left.addClass('on');
+					$top.animate({top:"-70px" }, 100);
+					$left.animate({left:"-140px" }, 100);
+					$('.pc-viewer').addClass('on');
+					$('.screen-wrap').addClass('big');
+				}
+			});
+			var winW = window.outerWidth;
+			var winH = window.outerHeight;
+			var winInH = $(window).height();
+			var $btnFullScreen = $('.screen-control').find('.btn-full');
+			var $screenWrap = $('.screen-wrap');
+			$btnFullScreen.on('click', function(){
+				//console.log(winW, winH, winInH);
+				if(!($left.hasClass('on'))){
+					$wideningBtn.trigger('click');
+				}
+				if($screenWrap.hasClass('full')){
+					window.resizeTo(winW, winH);
+					$screenWrap.removeClass('full');
+					$('.screen-type').removeClass('full');
+					$('.screen-type').removeClass('full');
+					$('.screen-wrap').height('');
+					$('.screen-wrap .screen').height('');
+					if($left.hasClass('on')){
+						$wideningBtn.trigger('click');
+					}
+
+				} else {
+					var w=screen.width;
+					var h = screen.height;
+					window.resizeTo(w,h);
+					window.moveTo(0,0);
+					$screenWrap.addClass('full');
+					$('.screen-type').addClass('full');
+
+					if (navigator.userAgent.indexOf('Chrome')>-1 || navigator.userAgent.indexOf('Safari')>-1) {
+						var scReHeight = h -  (winH - winInH) -  70;
+					} else {
+						var scReHeight = h -  (winH - winInH) -  38;
+					}
+
+
+					$('.screen-wrap').height( scReHeight);
+					$('.screen-wrap .screen').height( scReHeight);
+					//console.log(h, scReHeight);
+				}
+			});
+
+			// paint 기능 추가가
+			canvas = document.getElementById("myCanvas");
+			cv = canvas.getContext("2d");
+			imgCanvas = document.getElementById("imgCanvas");
+			imgCv = imgCanvas.getContext("2d");
+			cv.font = font_size + "px 맑은 고딕";
+			$("input[name=drawTool]").on("change", function () {
+				console.log($(this).val());
+				changeMode($(this).val());
+			});
+
+			$("input[name=drawColor]").on("change", function () {
+				console.log($(this).val());
+				changeColor($(this).val());
+				$("#pallet").css("background-color", line_color);
+			});
+
+			$("input[name=drawSize]").on("change", function () {
+				console.log($(this).val());
+				changeStrokeWidth($(this).val());
+			});
+
+			var mediaIndex = 0;
+			var tmpStrList = [];
+			$("html").click(function(e) {
+				//console.log('html click')
+				if ($(e.target).attr("name") == "startTrackingArea") {
+					return;
+				}
+
+				if ($(e.target).attr("name") == "textCreateBtnArea") {
+					if ($("#textLayer").length == 0) {
+						createTextArea();
+					}
+					return;
+				}
+
+				if ($(e.target).attr("name") == "textToolArea") {
+					return;
+				}
+
+				if (!createdText) {
+					return;
+				}
+
+				//console.log('html return pass')
+				$(".textArea").removeClass("layer");
+
+				if(!$(e.target).hasClass("layer")) {
+					console.log('text box out click')
+					if ($(".textArea").val().trim() == "") {
+					} else {
+						cv.font = font_size + "px 맑은 고딕";
+						var str = $(".textArea").val();
+						var tmpStr = "";
+						var resultStr = "";
+						for (var i = 0; i < str.length; i++) {
+							if (str[i] == "\n") {
+								tmpStr = "";
+								resultStr += "\n";
+								continue;
+							}
+							tmpStr += str[i];
+//							if (cv.measureText(tmpStr).width >= Math.floor(tmpWidth)) {
+							if (cv.measureText(tmpStr).width >= Math.floor(currentTextWidth)) {
+								tmpStr = tmpStr.substr(tmpStr.length - 1, 1);
+								resultStr += "\n";
+								resultStr += str[i];
+							} else {
+								resultStr += str[i];
+							}
+						}
+						var tmp = resultStr.split("\n");
+						if (tmp.length > 3) {
+							resultStr = tmp[0];
+							for (var i = 1; i < 3; i++) {
+								resultStr += "\n" + tmp[i];
+							}
+						}
+
+						tmpStrList = resultStr.split("\n");
+
+						undoImageInfoList.push(canvas.toDataURL());
+						var offset = $("#textLayer").offset();
+						var offsetTop = $("#textLayer").offset().top - $("#myCanvas").offset().top;
+						var offsetLeft = $("#textLayer").offset().left;
+						cv.font = font_size + "px 맑은 고딕";
+						cv.fillStyle = line_color;
+						var text;
+						var xSize = 0;
+						var ySize;
+
+						for (var i = 0; i < tmpStrList.length; i++) {
+							var str = tmpStrList[i];
+							if (i == 0) {
+								text = str;
+							} else {
+								text = text + "\n" + str;
+							}
+
+							var marginX = 0;
+							var marginY = 0;
+							if (fontKind == 1) {
+								marginX = 1;
+								marginY = font_size - 2;
+								if (resizeX == 2.5) {
+									marginY = marginY - 3;
+								}
+							} else if (fontKind == 2) {
+								marginX = 1;
+								marginY = font_size - 3;
+								if (resizeX == 2.5) {
+									marginY = marginY - 5;
+								} else if (resizeX == 1) {
+									marginY = marginY + 1;
+								}
+							} else {
+								marginX = 1;
+								marginY = font_size - 4;
+								if (resizeX == 2.5) {
+									marginY = marginY - 5;
+								} else if (resizeX == 1) {
+									marginY = marginY + 1;
+								}
+							}
+							if (resizeX == 2) {
+								marginY = marginY - 3;
+							}
+							cv.fillText(str, offset.left + marginX, offset.top + marginY + (i * lineHeight));
+							ySize = (i + 1) * lineHeight + Math.floor(offsetTop * resizeYPer);
+							var strXSize = cv.measureText(str).width;
+							if (xSize < strXSize) {
+								xSize = strXSize;
+							}
+						}
+						ySize = offsetTop * resizeYPer + tmpStrList.length * font_size * resizeYPer;
+						if (ySize >= img[0].height) {
+							ySize = img[0].height - 1;
+						}
+
+						xSize = Math.floor((offsetLeft + xSize) * resizeXPer);
+						if (xSize >= img[0].width) {
+							xSize = img[0].width - 1;
+						}
+
+						var topCustom = Math.floor(offsetTop * resizeYPer);
+						if (resizeX == 2.5) {
+							topCustom = topCustom + 3;
+						}
+
+						posInfoList.push({
+							"type": "text",
+							"color": line_color.replace("#", "0x"),
+							"strokeWidth": fontKind,
+							"path": [
+								Math.floor(offsetLeft * resizeXPer)
+								, topCustom
+								, Math.floor(xSize)
+								, Math.floor(ySize)
+							],
+							"text": text
+						});
+
+
+						tmpStrList = [];
+					}
+					createdText = false;
+					$("#textLayer").remove();
+					e.preventDefault();
+				}
+			});
+
+			$("html").on("mousemove", function (e) {
+				//console.log('html mousemove')
+				if (currentTextWidth == -1) {
+					currentTextWidth = tmpWidth;
+				}
+				if (isTextMove) {
+					if ($("#textLayer").length == 0) {
+						return;
+					}
+					$("#textLayer").focus();
+//					maxStrLen = -1;
+//					cv.font = font_size + "px 맑은 고딕";
+//					var str = $("#textArea").val();
+//					var strLen;
+//					var tmpStr = "";
+//					var resultStr = "";
+//					for (var i = 0; i < str.length; i++) {
+//						if (str[i] == "\n") {
+//							strLen = cv.measureText(tmpStr).width;
+//							console.log("########################### " + tmpStr + "   " + strLen);
+//							if (maxStrLen < strLen) {
+//								maxStrLen = strLen;
+//							}
+//							tmpStr = "";
+//							resultStr += "\n";
+//							continue;
+//						}
+//						tmpStr += str[i];
+//						strLen = cv.measureText(tmpStr).width;
+//						if (strLen >= Math.floor(currentTextWidth)) {
+//							console.log("##############################################")
+//							strLen = cv.measureText(tmpStr.substr(0, tmpStr.length - 1)).width;
+//							tmpStr = tmpStr.substr(tmpStr.length - 1, 1);
+//							resultStr += "\n";
+//						}
+//						resultStr += str[i];
+//						if (maxStrLen < strLen) {
+//							maxStrLen = strLen;
+//						}
+//						if (strLen >= Math.floor(currentTextWidth)) {
+//							maxStrLen = strLen;
+//						}
+//					}
+//					maxStrLen = maxStrLen + 5;
+
+
+//					console.log(e.pageX + "    " + e.pageY);
+//					var posX = textAreaPosX + e.pageX - textAreaClickPosX;
+//					var posY = textAreaPosY + e.pageY - textAreaClickPosY;
+					var posX = e.pageX - $("#textArea").width() / 2;
+					var posY = e.pageY - $("#textArea").height() / 2;
+
+					if (posX < 0) {
+						posX = 0;
+					}
+
+//					if (textWidth > $("#textLayer").width()) {
+//						textWidth = $("#textLayer").width();
+//					}
+
+//					console.log(maxStrLen)
+//					if (posX > canvas.width - maxStrLen) {
+//						posX = canvas.width - maxStrLen;
+//					}
+					if (posX > canvas.width - $("#textLayer").width()) {
+						posX = canvas.width - $("#textLayer").width() - 2;
+					}
+					if (posY < commonTopMargin) {
+						posY = commonTopMargin;
+					}
+					if (posY > canvas.height - $("#textLayer").height() + commonTopMargin) {
+						posY = canvas.height - $("#textLayer").height() + commonTopMargin;
+					}
+
+					$("#textLayer").css("left", posX + "px");
+					$("#textLayer").css("top", posY + "px");
+					//console.log('mousemove result')
+//					var tmpTextWidth = $("#textLayer").width() - ($("#textLayer").offset().left + $("#textLayer").width() - $("#myCanvas").width()) - 2
+//					if (tmpTextWidth > tmpWidth) {
+//						$("#textArea").width(tmpWidth);
+//						$("#textLayer").width(tmpWidth);
+//						currentTextWidth = tmpWidth;
+//					} else {
+//						$("#textArea").width(tmpTextWidth);
+//						$("#textLayer").width(tmpTextWidth);
+//						currentTextWidth = tmpTextWidth;
+//					}
+//					$("#textArea").val(resultStr);
+				}
+			});
+
+
+//			$("#notice").on("click", function () {
+//				if (isOpen) {
+//					$("#noticeLeftBtn").contents().find("body").find("span").click();
+//				}
+//				if ($("applet").length == 0) {
+//					$(".drop-down").removeClass("on");
+//					return;
+//				}
+//				$("#noticeList").css("background", "transparent");
+//				getNotice("top");
+//			});
+
+			var $head = $("#sideNoticeBtn").contents().find("head");
+			//var url = "/resources/css/pb/common.css";
+			var url = "/stylesheets/viewer/common.css";
+			$head.append($("<link/>", {rel: "stylesheet", href: url, type: "text/css"}));
+			var bodyP = $(document.createElement("p")).addClass("btnNotice").attr("title", "공지메세지");
+			$("#sideNoticeBtn").contents().find("body").append(bodyP);
+
+			$head = $("#sideMovieBtn").contents().find("head");
+			//url = "/resources/css/pb/common.css";
+			url = "/stylesheets/viewer/common.css";
+			$head.append($("<link/>", {rel: "stylesheet", href: url, type: "text/css"}));
+			bodyP = $(document.createElement("p")).addClass("btnPlay").attr("title", "재생목록");
+			$("#sideMovieBtn").contents().find("body").append(bodyP);
+
+			$("#sideNoticeBtn").contents().find("html").on("click", function () {
+				console.log("sideNoticeBtn");
+				sideNoticeClick();
+			});
+
+			$("#sideMovieBtn").contents().find("html").on("click", function () {
+				console.log("sideMovieBtn");
+				sideMovieClick();
+			});
+	});
+
+function selectedDrawTool(val, object) {
+	$("input[name=drawTool][value="+val+"]").trigger("click");
+	if (object !== undefined) {
+		$(".visit").each(function () {
+			$(this).removeClass("visit")
+		});
+		$(object).addClass("visit");
+	}
+}
+
+function selectedDrawColor(val, colorCd) {
+	var $colorBtn = $("#colorBtn");
+	$colorBtn.removeClass();
+	$colorBtn.addClass(colorCd);
+	$colorBtn.siblings("div.dropdown-content").find("a").each(function () {
+		if ($(this).attr("colorCd") == colorCd) {
+			$(this).attr("style", "background-color: #0099ff");
+		} else {
+			$(this).removeAttr("style");
+		}
+	});
+	$("input[name=drawColor][value="+val+"]").trigger("click");
+}
+
+function selectedDrawSize(val, sizeCd) {
+	var $lineSizeBtn = $("#lineSizeBtn");
+	$lineSizeBtn.removeClass();
+	$lineSizeBtn.addClass(sizeCd);
+	$lineSizeBtn.find("a").each(function () {
+		if ($(this).attr("sizeCd") == sizeCd) {
+			$(this).attr("style", "background-color: #0099ff");
+		} else {
+			$(this).removeAttr("style");
+		}
+	});
+
+	$("input[name=drawSize][value="+val+"]").trigger("click");
+}
+
+function selectedFontSize(val, sizeCd) {
+	var $textSizeBtn = $("#textSizeBtn");
+	$textSizeBtn.removeClass();
+	$textSizeBtn.addClass(sizeCd);
+	$textSizeBtn.find("a").each(function () {
+		if ($(this).attr("sizeCd") == sizeCd) {
+			$(this).attr("style", "background-color: #0099ff");
+		} else {
+			$(this).removeAttr("style");
+		}
+	});
+		changeFontSize(val, $("#textLayer").length > 0);
+}
+
+// function checkAuth() {
+// 	return "<%=data.default_control%>" == 1;
+// }
+
+function getAdminName() {
+	return "<%=data.name%>";
+}
+
+function getAdminDeptName() {
+	return "<%=data.dept_name%>";
+}
+
+function getDebug() {
+	return "<%=data.debug%>" == 1;
+}
+
+</script>
+
+<!--// 20170619 임성준 -->
+<style>
+	.toolMore {opacity: 0.7}
+/*.pc-viewer .screen-type2 {background:#666; min-height:40px; font-size:0; position:absolute; top:912px; width:100%; z-index:999999999; opacity:0.7;}*/
+.pc-viewer .screen-type2 {background:#666; min-height:40px; font-size:0; position:absolute; top:912px; width:100%; z-index:999999999; opacity:1;}
+.pc-viewer .drop-down2 {display:inline-block; vertical-align:top; position:relative; margin-right:1px;}
+.pc-viewer .drop-down2 .btn-toggle2 {border:none; background:#505050; width:140px; text-align:center; height:40px; line-height:40px; color:#fff; font-size:14px; letter-spacing:-1px;}
+.pc-viewer .drop-down2 .btn-toggle2::after {
+	content:'';
+	display:inline-block;
+	width:9px;
+	height:6px;
+	/* background:url('/resources/images/bg_icon.png') -20px -60px no-repeat; */
+	/* margin:0 0 0 7px; */
+}
+.pc-viewer .drop-down2 .drop-option2 {
+	display:none;
+	position:absolute;
+	z-index:99999;
+	background:#383838;
+	width:1666px;
+	bottom:40px;
+	left:0;
+	padding:10px 0;
+}
+.pc-viewer .drop-down2.on .drop-option2 {display:block;}
+.pc-viewer .drop-down2 .drop-option2 > li {
+	font-size:13px;
+	color:#fff;
+	height:40px;
+	line-height:40px;
+	display:inline-block;
+	width:140px;
+	cursor:pointer;
+	text-align:center;
+	border-right:1px solid #666;
+}
+</style>
+<!-- 20170619 임성준 //-->
+
+</head>
+<body>
+	<div class="pc-viewer">
+		<div class="logo" style="display:none">
+			<img src="/resources/images/logo.png" alt="영상중계시스템" />
+		</div>
+		<section class="screen-list" style="display:none">
+			<h3 class="title">영상목록</h3>
+			<ul class="list">
+				<li>1. 리스트 1</li>
+				<li>2. 리스트 2</li>
+				<li>3. 리스트 3</li>
+				<li>4. 리스트 4</li>
+				<li>5. 리스트 5</li>
+			</ul>
+			<p class="id">계정 : jung072</p>
+			<p class="closed"><button type="button" class="btn default">닫기</button></p>
+			<button type="button" class="btn-closed on">닫기</button>
+		</section>
+
+		<!--// 20170619 임성준 -->
+		<input type="radio" name="drawTool" id="pen" value="1" class="hide" />
+		<input type="radio" name="drawTool" id="line" value="2" class="hide" />
+		<input type="radio" name="drawTool" id="circle" value="3" class="hide" />
+		<input type="radio" name="drawTool" id="rect" value="4" class="hide" />
+		<input type="radio" name="drawTool" id="text" value="5" class="hide" />
+		<input type="radio" name="drawTool" id="arrow" value="6" class="hide" />
+
+		<input type="radio" name="drawColor" id="red" value="0" class="hide" />
+		<input type="radio" name="drawColor" id="sky" value="1" class="hide" />
+		<input type="radio" name="drawColor" id="orange" value="2" class="hide" />
+		<input type="radio" name="drawColor" id="black" value="3" class="hide" />
+		<input type="radio" name="drawColor" id="white" value="4" class="hide" />
+		<input type="radio" name="drawColor" id="green" value="5" class="hide" />
+
+		<input type="radio" name="drawSize" id="small" value="1" class="hide" />
+		<input type="radio" name="drawSize" id="medium" value="2" class="hide" />
+		<input type="radio" name="drawSize" id="big" value="3" class="hide" />
+
+	<iframe id="sideNoticeBtn" class="sideNoticeBtn" width="33" height="50" frameborder="0" scrolling="no" allowTransparency="true" style="position:absolute; right:0; top:220px; z-index:10; cursor:pointer;"></iframe>
+	<iframe id="sideMovieBtn" class="btn02" width="33" height="50" src="" frameborder="0" scrolling="no" allowTransparency="true" style="position:absolute; right:0; top:275px; background:url(/resources/images/btn_sideLayer_play.png) no-repeat 0 0; z-index:10; cursor:pointer;"></iframe>
+	<iframe id="sideNotice" width="368" height="100%" frameborder="0" scrolling="no" allowTransparency="true" style="position:absolute; right:0; display:none; z-index:20;"></iframe>
+	<iframe id="sidePlay" width="368" height="100%" src="sidePlay.html" frameborder="0" scrolling="no" allowTransparency="true" style="position:absolute; right:0; display:none; z-index:20;"></iframe>
+	<!--start 좌상단 버튼-->
+	<iframe id="liveBtnImage" class="hide" width="65" height="34" src="" frameborder="0" scrolling="no" allowTransparency="true" style="position:absolute; left:20px; top:20px; background:url(/resources/images/tip_live.png) no-repeat 0 0; z-index:10;"></iframe>
+	<iframe id="arBtnImage" class="hide" width="65" height="34" src="" frameborder="0" scrolling="no" allowTransparency="true" style="position:absolute; left:90px; top:20px; background:url(/resources/images/tip_ar.png) no-repeat 0 0; z-index:10;"></iframe>
+	<iframe id="replayBtnImage" class="hide" width="93" height="34" src="" frameborder="0" scrolling="no" allowTransparency="true" style="position:absolute; left:160px; top:20px; background:url(/resources/images/tip_replay.png) no-repeat 0 0; z-index:10;"></iframe>
+	<!--end 좌상단 버튼-->
+		<section class="screen-wrap cel-4" id="cctv_wrap" >
+			<div >
+				<div id="cctv" >
+					<div class="video_big">
+						<div id="canvasArea" style="width: 1666px; height: 872px;" class="hide">
+							<canvas id="myCanvas" class="hide" width="16" height="9" style="background-color: transparent; position: absolute; top:0px; left:0px" onclick='$("div.drop-down2.tool.on").removeClass("on")' onmousedown="checkMode(event)" onmouseup="completeDrawing(event)" onmousemove="penDrag(event)"></canvas>
+							<canvas id="imgCanvas" class="hide" width="16" height="9"></canvas>
+							<canvas id="historyCanvas" class="hide" width="16" height="9"></canvas>
+							<canvas id="tmpCanvas" class="hide" width="16" height="9"></canvas>
+						</div>
+						<div class="video bg4"></div>
+					</div>
+				</div>
+			</div>
+		</section>
+		<section>
+			<div id="controls">
+				<div class="progress">
+					<div class="progress_out">
+						<div class="progress_in"></div>
+					</div>
+				</div>
+				<ul class="toollist">
+					<li class="fl">
+						<div class="btn_group">
+							<span class="tooltip" value="play" id="play"><img src=""><span class="tooltiptext">재생</span></span>
+							<span class="tooltip tooltip-hide" value="stop" id="stop"><img src="/resources/images/btn_controls_stop.png"><span class="tooltiptext">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;영상 종료 </span></span>
+						</div>
+						<div class="btn_group">
+							<span class="tooltip" value="soundon" id="soundon"><img src="/resources/images/btn_controls_soundOn.png"><span class="tooltiptext">사운드켬</span></span>
+							<span class="tooltip tooltip-hide" value="soundoff" id="soundoff"><img src="/resources/images/btn_controls_soundOff.png"><span class="tooltiptext">사운드끔</span></span>
+						</div>
+						<div class="playTime">16:00:55</div>
+					</li>
+					<li class="fr">
+						<div id="arStartBtn" class="btn_group fl" name="playHide">
+							<span class="tooltip"><img onclick="startArMemo()" src="/resources/images/btn_controls_arPlay.png"><span class="tooltiptext">AR메모 작성</span></span>
+						</div>
+						<div id="arStopBtn" class="btn_group fl hide">
+							<div class="btn_line" name="playHide"></div>
+							<span class="tooltip"><img onclick="clickedStopTracking()" src="/resources/images/btn_controls_arStop.png"><span class="tooltiptext">AR메모 종료</span></span>
+						</div>
+						<div id="inputImageToggleBtn" class="btn_group fl hide">
+							<div class="btn_line"></div>
+							<span class="tooltip"><img id="toggleImg" onclick="toggleInputImage()" src="/resources/images/btn_controls_arOn.png"><span class="tooltiptext">AR메모 감추기</span></span>
+							<!--<span class="tooltip tooltip-hide"><img src="/resources/images/btn_controls_arOff.png"><span class="tooltiptext">AR Off</span></span>-->
+						</div>
+						<div id = "arOriginImage" class="btn_group fl">
+							<div class="btn_line" name="divFunc"></div>
+							<span class="tooltip"><img id="viewOrignalBtn" onclick="toggleOriginalImageList()" src="/resources/images/btn_controls_arImg_disable.png"><span class="tooltiptext">AR메모 이력</span></span>
+						</div>
+						<div class="btn_group fl">
+							<div class="btn_line" name="divFunc"></div>
+							<span class="tooltip" value="ring" id="ring"><img src="/resources/images/btn_controls_call.png"><span class="tooltiptext">전화</span></span>
+							<span class="tooltip tooltip-hide" value="hangup" id="hangup"><img src="/resources/images/btn_controls_callIng.png"><span class="tooltiptext">전화중</span></span>
+						</div>
+						<div class="btn_group" style="position:relative;">
+							<div class="tooltip" id="changeBtn" onclick="createChannelView()">
+								<span class="tooltiptext">화면분할</span>
+								<img src="/resources/images/btn_controls_div.png">
+							</div>
+							
+							<div class="dropdown-content">
+								<img src="/resources/images/btn_controls_div_01.png" title="1:1" style="background-color: #0099ff" onclick="play('1', this)">
+								<img src="/resources/images/btn_controls_div_02.png" title="4:1" onclick="play('4', this)">
+								<img src="/resources/images/btn_controls_div_03.png" title="4:1" onclick="play('9', this)">
+							</div>
+						</div>
+						<div class="btn_group">
+							<span class="tooltip" value="fullscreen" onclick="toggleFullScreen(document.body)"><img src="/resources/images/btn_controls_exp.png"><span class="tooltiptext">전체화면</span></span>
+							<span id="btn_off" class="tooltip tooltip-hide" value="bagicscreen" onclick="toggleFullScreen(document.body)"><img src="/resources/images/btn_controls_exp.png"><span class="tooltiptext">전체화면</span></span>
+						</div>
+					</li>
+				</ul>
+			</div>
+
+			<div id="drawtools" class="hide" style="z-index: 20">
+				<ul class="toollist">
+					<li id="close" onclick="cancelArCanvas()">
+						<div class="tooltip"><img src="/resources/images/btn_draw_01.png"><span class="tooltiptext">그리기툴닫기</span></div>
+					</li>
+					<li onclick="undo()">
+						<div class="tooltip"><img src="/resources/images/btn_draw_02.png"><span class="tooltiptext">이전</span></div>
+					</li>
+					<li onclick="redo()">
+						<div class="tooltip"><img src="/resources/images/btn_draw_03.png"><span class="tooltiptext">다음</span></div>
+					</li>
+					<li name="textCreateBtnArea">
+						<div class="tooltip" name="textCreateBtnArea"><img name="textCreateBtnArea" onclick="createTextArea()" src="/resources/images/btn_draw_04.png"><span class="tooltiptext">텍스트</span></div>
+					</li>
+					<li name="textToolArea" id="textSizeBtn" class="s">
+						<div class="tooltip" name="textToolArea">
+							<span class="tooltiptext">텍스트크기</span>
+							<img src="/resources/images/btn_draw_05.png" name="textToolArea">
+							<div name="textToolArea" class="dropdown-content">
+								<a name="textToolArea" sizeCd="l" href="javascript:selectedFontSize(3, 'l');"><img name="textToolArea" src="/resources/images/btn_fontSize_l.png" title="대"></a>
+								<a name="textToolArea" sizeCd="m" href="javascript:selectedFontSize(2, 'm');"><img name="textToolArea" src="/resources/images/btn_fontSize_m.png" title="중"></a>
+								<a name="textToolArea" sizeCd="s" href="javascript:selectedFontSize(1, 's');" style="background-color: #0099ff"><img name="textToolArea" src="/resources/images/btn_fontSize_s.png" title="소"></a>
+							</div>
+						</div>
+					</li>
+					<li onclick="selectedDrawTool(2, this)">
+						<div class="tooltip on"><img src="/resources/images/btn_draw_06.png"><span class="tooltiptext">선</span></div>
+					</li>
+					<li onclick="selectedDrawTool(6, this)">
+						<div class="tooltip"><img src="/resources/images/btn_draw_07.png"><span class="tooltiptext">화살표</span></div>
+					</li>
+					<li onclick="selectedDrawTool(4, this)">
+						<div class="tooltip"><img src="/resources/images/btn_draw_08.png"><span class="tooltiptext">사각형</span></div>
+					</li>
+					<li onclick="selectedDrawTool(3, this)">
+						<div class="tooltip"><img src="/resources/images/btn_draw_09.png"><span class="tooltiptext">원형</span></div>
+					</li>
+					<li class="visit" onclick="selectedDrawTool(1, this)">
+						<div class="tooltip"><img src="/resources/images/btn_draw_10.png"><span class="tooltiptext">자유곡선</span></div>
+					</li>
+					<li id="lineSizeBtn" class="s">
+						<div class="tooltip">
+							<span class="tooltiptext">선굵기</span>
+							<img src="/resources/images/btn_draw_11.png">
+							<div class="dropdown-content">
+								<a sizeCd="l" href="javascript:selectedDrawSize(3, 'l')"><img src="/resources/images/btn_lineWeight_l.png" title="대"></a>
+								<a sizeCd="m" href="javascript:selectedDrawSize(2, 'm')"><img src="/resources/images/btn_lineWeight_m.png" title="중"></a>
+								<a sizeCd="s" href="javascript:selectedDrawSize(1, 's')" style="background-color: #0099ff"><img src="/resources/images/btn_lineWeight_s.png" title="소"></a>
+							</div>
+						</div>
+					</li>
+					<li>
+						<div class="tooltip">
+							<span class="tooltiptext">색상</span>
+							<img id="colorBtn" src="/resources/images/btn_draw_12.png" class="rd">
+							<div class="dropdown-content">
+								<a colorCd="bk" href="javascript:selectedDrawColor(3, 'bk')"><img src="/resources/images/btn_color_bk.png" title="블랙"></a>
+								<a colorCd="wh" href="javascript:selectedDrawColor(4, 'wh')"><img src="/resources/images/btn_color_wh.png" title="화이트"></a>
+								<a colorCd="bl" href="javascript:selectedDrawColor(1, 'bl')"><img src="/resources/images/btn_color_bl.png" title="블루"></a>
+								<a colorCd="gr" href="javascript:selectedDrawColor(5, 'gr')"><img src="/resources/images/btn_color_gr.png" title="그린"></a>
+								<a colorCd="or" href="javascript:selectedDrawColor(2, 'or')"><img src="/resources/images/btn_color_or.png" title="오렌지"></a>
+								<a colorCd="rd" href="javascript:selectedDrawColor(0, 'rd')" style="background-color: #0099ff"><img src="/resources/images/btn_color_rd.png" title="레드"></a>
+							</div>
+						</div>
+					</li>
+					<li id="startTracking" name="startTrackingArea" onclick="javascript:startTracking()">
+						<div id="AR" name="startTrackingArea">
+							<span class="tooltip" name="startTrackingArea"><img src="/resources/images/btn_draw_13.png" name="startTrackingArea"><span class="tooltiptext">AR메모 시작</span></span>
+							<!--<span class="tooltip tooltip-hide"><img src="/resources/images/btn_draw_13_on.png"><span class="tooltiptext">AR메모중</span></span>-->
+						</div>
+					</li>
+				</ul>
+			</div>
+			<!--원본이미지 -->
+			<div id="original" class="hide" style="z-index: 20">
+				<ul class="toollist">
+					<li class="fl">
+						<div class="txt_wh mt15 ml20">
+							AR메모 원본 이미지 보기 중
+						</div>
+					</li>
+					<li class="fl">
+						<div class="txt_wh mt15 ml30">
+							저장 폴더 : C:\IIOT-LIVECAM\AR_Memo\AR_IMAGE
+						</div>
+					</li>
+					<li class="fr">
+						<div class="btn_group" id="historyArStartBtn">
+							<span class="tooltip"><img onclick="startArMemo()" src="/resources/images/btn_arImgStart.png"><span class="tooltiptext">AR메모 편집</span></span>
+						</div>
+						<div class="btn_group">
+							<span class="tooltip"><img onclick="toggleOriginalImageList()" src="/resources/images/btn_arImg.png"><span class="tooltiptext">AR메모 원본 이미지 보기</span></span>
+						</div>
+						<div class="btn_group">
+							<span class="tooltip"><img onclick="saveHistory(this)" src="/resources/images/btn_save.png"><span class="tooltiptext">저장하기</span></span>
+						</div>
+						<div class="btn_group">
+							<span class="tooltip"><img onclick="cancelHistory()" src="/resources/images/btn_back.png"><span class="tooltiptext">back</span></span>
+						</div>
+					</li>
+				</ul>
+			</div>
+		</section>
+
+
+
+	<style>
+		.info {width:100%; border-bottom:1px solid #fff; position:relative; z-index:10; background-color:#fff;}
+		.info .info_inner {height:20px; padding:10px 11px 10px 15px;}
+		.info .left {float:left;}
+		.info .left .play_btn_s {width:20px; height:20px; display:inline-block; float:left; background:url(/images/common/play_btn_s.png) no-repeat;}
+		.info .left .play_btn_s.stop {background-position:0px 0px;}
+		.info .left .play_btn_s.stop:hover {background-position:0px -30px;}
+		.info .left .play_btn_s.play {background-position:-30px 0px;}
+		.info .left .play_btn_s.play:hover {background-position:-30px -30px;}
+		.info .left .title {height:20px; padding-left:10px; margin-left:10px; float:left; display:inline-block; font-family:ngXBold; font-size:14px; line-height:20px; color:#222; border-left:0px solid #eaeef1;}
+		.info .right {float:right;}
+		.info .right .btn_screen {width:14px; height:14px; margin-top:5px; float:left; display:inline-block; background:url(/images/common/btn_screen_b.gif) 0 0 no-repeat;}
+		.info .right .btn_volum {width:18px; height:20px; margin-right:10px; float:left; display:none; background:url(/images/common/btn_volum.png) 0 3px no-repeat;}
+		.info .right .btn_volum:hover {background-position:-20px 3px;}
+		.info .right .btn_volum.off {background-position:-40px 3px;}
+		.info .right .btn_volum.off:hover {background-position:-60px 3px;}
+		.info .right .rec {display:none;float:left; padding-left:18px; margin-right:10px; background:url(/images/common/ico_rec.gif) 0 3px no-repeat;}
+		.info .right .rec .rec_stat {line-height:20px; color:#eb2111;}
+		.info .right .rec .rec_time {font-family:ngBold; line-height:20px; color:#222;}
+		/* mVoIP */
+		.info .right .btn_call {width:18px; height:20px; margin-right:10px; float:left; display:none; background:url(/images/common/mVoIP_call.png) 0 3px no-repeat;}
+		.info .right .btn_call.off {background-position:-20px 3px;}
+
+
+		.hover {position:absolute; top:0; left:0; display:none; border:2px solid #fb6362;}
+		.btn {margin-right:10px;width:20px; height:20px;  font-size:0; border:none;}
+		.btn-play{background:url('/resources/images/pcviewer_play.png') no-repeat;}
+		.btn-full{background:url('/resources/images/pcviewer_full.png') no-repeat;}
+		.btn-mute{background:url('/resources/images/pcviewer_mute.png') no-repeat;}
+
+
+		.liText {
+			/*text-align: left;*/
+			color: white;
+			/*font-size: 12px;*/
+			/*font-family: 'Nanum-Gothic','NanumGothic','Nanum Gothic','NanumGothic','나눔고딕';*/
+			text-decoration: none;
+		}
+
+		.liTextActive {
+			/*text-align: left;*/
+			color: #0E9AEF;
+			/*font-weight: bold;*/
+			/*font-size: 12px;*/
+			/*font-family: 'Nanum-Gothic','NanumGothic','Nanum Gothic','NanumGothic','나눔고딕';*/
+			text-decoration: none;
+		}
+
+		.liTextSelected {
+			/*text-align: left;*/
+			color: red;
+   			/*font-weight: bold;*/
+			/*font-size: 12px;*/
+			/*font-family: 'Nanum-Gothic','NanumGothic','Nanum Gothic','NanumGothic','나눔고딕';*/
+			text-decoration: none;
+		}
+
+	 </style>
+
+		<!-- section class="screen-control">
+
+			<p class="time float-left">
+				<button type="button" class="btn btn-play">Play</button>00 : 01 : 24
+			</p>
+			<p class="float-right">
+				<button type="button" class="btn btn-mute">음소거</button>
+				<button type="button" class="btn btn-full" onclick="toggleFullScreen(document.body)">FULL SCREEN</button>
+				<button type="button" class="btn btn-full">FULL SCREEN</button>
+			</p>
+			<p class="info">발신정보 : 01039989221 / 9221_test / 9.99.IWS (시험센터)</p>
+
+
+
+
+		</section -->
+	</div>
+
+	<script type="text/javascript" src="/javascript/viewer/deployJava.js"></script>
+</body>
+</html>

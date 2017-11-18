@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+	<% include ../common/head %>
+</head>
+<body class="frame-body">
+	<div class="page-loading">
+		<div class="loading">
+			<p class="">Loading...</p>
+		</div>
+		<div class="overlay"></div>
+	</div>
+	<!-- /page-loading -->
+
+	<div class="wrap">
+		<% include ../common/header %>
+		<div class="frame-container">
+			<section class="page-content">
+				<header class="page-header clearfix">
+					<h2 class="pull-left">영상상세정보</h2>
+					<div class="pull-right">
+                        <!--
+						<button type="button" id="fullFoldingBtn" class="btn btn-ico" aria-label="Full Toggle">
+							<span class="ico ico-search-close" aria-hidden="true"></span>
+                        </button>
+                        -->
+						<button type="button" id="favorite" class="btn btn-ico" aria-label="Favorite">
+							<!-- <span class="ico ico-favorite-on" aria-hidden="true"></span> -->
+							<span class="ico ico-favorite-off" aria-hidden="true"></span>
+						</button>
+					</div>
+				</header>
+                <!-- /page-header -->
+				<div class="module-group clearfix">
+					<div class="pull-left sub-header">
+						<h3>영상기본정보</h3>
+					</div>
+					<div class="pull-right">
+						<a href="/report"><button class="btn btn-default btn-sm" aria-label="Button" type="button">목록</button></a>
+						<button class="btn btn-default btn-sm" aria-label="Button" type="button">영상다운로드</button>
+						<button class="btn btn-default btn-sm" aria-label="Button" type="button">영상스트리밍</button>
+						<button class="btn btn-default btn-sm" aria-label="Button" type="button" data-toggle="modal" data-target="#vms_save">VMS저장</button>
+					</div>
+				</div>
+
+				<div class="grid-wrap">
+                    <table class="table table-condensed" summary="영상기본정보">
+                        <caption class="sr-only-lgd">영상기본정보</caption>
+                        <colgroup>
+                            <col width="17%">
+                            <col width="*">
+                            <col width="17%">
+                            <col width="*">
+                        </colgroup>
+                        <tbody>
+							<%
+					if(data.length==0){
+					%>
+								<tr>
+									<td colspan='10'>데이터가 없습니다.</td>
+								</tr>
+								<%
+					}
+					else{
+						 for(var i=0; i<data.length; i++)
+						 {
+							var Item = data[i];
+					%>
+                            <tr>
+                                <th scope="row">
+                                    <label for="input01">발신번호</label>
+                                </th>
+                                <td><%=Item.CUST_CTN%></td>
+                                <th scope="row">
+                                    <label for="input02">촬영시작</label>
+                                </th>
+                                <td><%=Item.INSERT_DATE%></td>
+                            </tr>
+                            <tr>
+                                <th scope="row">
+                                    <label for="input01">이름</label>
+                                </th>
+                                <td><%=Item.CUST_NM%></td>
+                                <th scope="row">
+                                    <label for="input01">촬영종료</label>
+                                </th>
+                                <td><%=Item.UPDATE_DATE%></td>
+                            </tr>
+                            <tr>
+                                <th scope="row">
+                                    <label for="input01">부서명</label>
+                                </th>
+                                <td><%=Item.CUST_DEPT_NM%></td>
+                                <th scope="row">
+                                    <label for="input01">촬영시간</label>
+                                </th>
+                                <td>00:10:00</td>
+                            </tr>
+                                <tr>
+                                <th scope="row">
+                                    <label for="input01">촬영유형</label>
+                                </th>
+                                <td>일반작업</td>
+                                <th scope="row">
+                                    <label for="input01">해상도</label>
+                                </th>
+                                <td>Full HD</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">
+                                    <label for="input01">채널명</label>
+                                </th>
+                                <td>테스트</td>
+                                <th scope="row">
+                                    <label for="input01">Bit Rate</label>
+                                </th>
+                                <td><%=Item.BIT_RATE%></td>
+                            </tr>
+                            <tr>
+                                <th scope="row">
+                                    <label for="input01">단말모델명</label>
+                                </th>
+                                <td><%=Item.DEV_MODEL%></td>
+                                <th scope="row">
+                                    <label for="input01">영상크기</label>
+                                </th>
+                                <td><%=Item.UPLOAD_FILE_SZ%></td>
+                            </tr>
+							<%
+			 }
+		 }
+		%>
+                        </tbody>
+                    </table>
+                </div>
+                <!-- /grid-wrap -->
+
+                <div class="panel panel-default clearfix mt10 video-detail">
+					<div class="panel-body">
+						<div class="row">
+							<div class="col-xs-6">
+								<div class="sub-header">
+									<h4>촬영장소</h4>
+								</div>
+								<div class="module-group clearfix margin_none">
+									<div class="map" id="map" style="background:url(/images/cam/map_sample.png)"></div>
+								</div>
+								<!-- /module-group -->
+							</div>
+							<!--/col-xs-6 -->
+							<div class="col-xs-6">
+								<div class="sub-header">
+									<h4>썸네일</h4>
+								</div>
+								<div class="module-group clearfix margin_none">
+									<ul class="thumbnail-list">
+										<li class="thumbnail-list-item" >
+											<img src="/images/cam/image_sample.png" data-title="Image1"/>
+										</li>
+										<li class="thumbnail-list-item" >
+											<img src="/images/cam/image_sample.png" data-title="Image2"/>
+										</li>
+										<li class="thumbnail-list-item">
+											<img src="/images/cam/image_sample.png" data-title="Image3"/>
+										</li>
+										<li class="thumbnail-list-item">
+											<img src="/images/cam/image_sample.png" data-title="Image4"/>
+										</li>
+									</ul>
+									<!--/ ul -->
+									<ul class="thumbnail-list">
+										<li class="thumbnail-list-item">
+											<img src="/images/cam/image_sample.png" data-title="Image5"/>
+										</li>
+										<li class="thumbnail-list-item">
+											<img src="/images/cam/image_sample.png" data-title="Image6"/>
+										</li>
+										<li class="thumbnail-list-item">
+											<img src="/images/cam/image_sample.png" data-title="Image7"/>
+										</li>
+										<li class="thumbnail-list-item">
+											<img src="/images/cam/image_sample.png" data-title="Image8"/>
+										</li>
+									</ul>
+									<!--/ ul -->
+								</div>
+							</div>
+							<!--/col-xs-6 -->
+						</div>
+						<!--/row -->
+
+						<div class="module-group clearfix">
+							<div class="sub-header">
+								<h4>동일채널 관제이력</h4>
+							</div>
+							<div class="grid-wrap mt10">
+								<table class="table table-bordered table-condensed table-selecter" summary="동일채널 관제이력">
+									<caption class="sr-only">동일채널 관제이력</caption>
+									<thead>
+										<tr>
+											<th scope="col">이름</th>
+											<th scope="col">부서명</th>
+											<th scope="col">직급</th>
+											<th scope="col">관제횟수</th>
+											<th scope="col">최초관제시간</th>
+											<th scope="col">최종관제시간</th>
+											<th scope="col">총 관제시간</th>
+										</tr>
+									</thead>
+									<tbody>
+										<tr>
+											<td class="text-center">이지태</td>
+											<td class="text-center">안전보건팀</td>
+											<td class="text-center">책임</td>
+											<td class="text-center">3</td>
+											<td class="text-center">2016-10-23 11:11:11</td>
+											<td class="text-center">2016-10-24 10:11:11</td>
+											<td class="text-center">01:10:00</td>
+										</tr>
+										<tr>
+											<td class="text-center">김택주</td>
+											<td class="text-center">안전보건팀</td>
+											<td class="text-center">책임</td>
+											<td class="text-center">3</td>
+											<td class="text-center">2016-10-23 11:11:11</td>
+											<td class="text-center">2016-10-24 10:11:11</td>
+											<td class="text-center">01:10:00</td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+							<!--/ grid-wrap -->
+
+						</div>
+						<!--/ module-group -->
+
+						<div class="module-group clearfix">
+							<div class="sub-header">
+								<h4>영상공유이력</h4>
+							</div>
+							<div class="grid-wrap mt10">
+								<table class="table table-bordered table-condensed table-selecter" summary="영상공유이력">
+									<caption class="sr-only">영상공유이력</caption>
+									<thead>
+										<tr>
+											<th scope="col">수신자</th>
+											<th scope="col">부서명</th>
+											<th scope="col">직급</th>
+											<th scope="col">전달자</th>
+											<th scope="col">조회</th>
+											<th scope="col">전달시각</th>
+											<th scope="col">최초관제시간</th>
+											<th scope="col">최종관제시간</th>
+											<th scope="col">총 관제시간</th>
+										</tr>
+									</thead>
+									<tbody>
+										<tr>
+											<td class="text-center">이지태</td>
+											<td class="text-center">안전보건팀</td>
+											<td class="text-center">책임</td>
+											<td class="text-center">노재훈</td>
+											<td class="text-center"><i class="fa fa-circle-o" aria-hidden="true"></i></td>
+											<td class="text-center">2016-10-24 10:11:11</td>
+											<td class="text-center">2016-10-23 11:11:11</td>
+											<td class="text-center">2016-10-24 10:11:11</td>
+											<td class="text-center">01:10:00</td>
+										</tr>
+										<tr>
+											<td class="text-center">이지태</td>
+											<td class="text-center">안전보건팀</td>
+											<td class="text-center">책임</td>
+											<td class="text-center">노재훈</td>
+											<td class="text-center"><i class="fa fa-times" aria-hidden="true"></i></td>
+											<td class="text-center">2016-10-24 10:11:11</td>
+											<td class="text-center">2016-10-23 11:11:11</td>
+											<td class="text-center">2016-10-24 10:11:11</td>
+											<td class="text-center">01:10:00</td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+							<!--/ grid-wrap -->
+
+						</div>
+						<!--/ module-group -->
+					</div>
+					<!--/ panel-body -->
+                </div>
+				<!--/ panel -->
+
+			</section>
+			<!-- /page-content -->
+		</div>
+		<!-- /frame-container -->
+		<div tabindex="-1" class="modal fade" id="myModal" role="dialog">
+			<div class="modal-dialog modal-lg">
+				<div class="modal-content">
+					<div class="modal-header dark">
+						<button class="close dark" aria-label="Close" type="button" data-dismiss="modal"><span aria-hidden="true">×</span></button>
+						<h1 class="modal-title">지도 제목</h1>
+					</div>
+					<div class="modal-body">
+
+					</div>
+					<!--
+					<div class="modal-footer text-center">
+						<button class="btn btn-darkgray btn-sm" data-dismiss="modal">확인</button>
+					</div>
+					-->
+				</div>
+			</div>
+		</div>
+		<!-- /modal -->
+		<div class="modal fade" id="vms_save" role="dialog">
+			<div class="modal-dialog modal-sm">
+				<div class="modal-content">
+					<div class="modal-header dark">
+						<button class="close dark" type="button" aria-label="Close" data-dismiss="modal"><span aria-hidden="true">×</span></button>
+						<h4 class="modal-title">VMS 저장여부</h4>
+					</div>
+					<!-- /modal-header -->
+					<div class="modal-body">
+						<p class="modal-ico ico-lgd"><span class="fa fa fa-question-circle fa-5x" aria-hidden="true" aria-label="question"></span></p>
+						<h4 class="message-title">QUESTION</h4>
+						<p class="message-desc">VMS에 저장하시겠습니까?</p>
+					</div>
+					<!-- /modal-body -->
+					<div class="modal-footer text-center">
+						<button class="btn btn-gray btn-sm" type="button" aria-label="Close" data-dismiss="modal">아니오</button>
+						<button class="btn btn-darkgray btn-sm" type="button" >예</button>
+					</div>
+					<!-- /modal-footer -->
+				</div>
+				<!-- /modal-content -->
+			</div>
+			<!-- /modal-dialog -->
+		</div>
+		<!-- /modal -->
+
+
+	</div>
+	<!-- /wrap -->
+
+	<% include ../common/scripts %>
+	<script src="/javascript/c_report.js"></script>
+
+	<!-- 페이지 스크립트 -->
+	<script>
+			$(function() {
+				// UI init
+				uxp.searchBox();
+			});
+	</script>
+	<script>
+			// $('.map').click(function(){
+			// 	$('.modal-body').empty();
+			// 	$($(this).parents('div').html()).appendTo('.modal-body');
+			// 	$('#myModal').modal({show:true});
+			// });
+	</script>
+	<script async defer
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCd2Esy-V12fyWhbLCldf6VD65Y_plGiq4&callback=initMap">
+    </script>
+
+</body>
+</html>

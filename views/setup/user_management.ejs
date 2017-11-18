@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+	<% include ../common/head %>
+</head>
+<body class="frame-body">
+	<div class="page-loading">
+		<div class="loading">
+			<p class="">Loading...</p>
+		</div>
+		<div class="overlay"></div>
+	</div>
+	<!-- /page-loading -->
+
+	<div class="wrap">
+		<% include ../common/header %>
+
+		<div class="frame-container">
+			<section class="page-content">
+				<header class="page-header clearfix">
+					<h2 class="pull-left">환경설정</h2>
+					<div class="pull-right">
+						<button type="button" id="fullFoldingBtn" class="btn btn-ico" aria-label="Full Toggle">
+							<span class="ico ico-search-close" aria-hidden="true"></span>
+						</button>
+						<button type="button" id="favorite" class="btn btn-ico" aria-label="Favorite">
+							<!-- <span class="ico ico-favorite-on" aria-hidden="true"></span> -->
+							<span class="ico ico-favorite-off" aria-hidden="true"></span>
+						</button>
+					</div>
+				</header>
+				<!-- /page-header -->
+				<ul class="nav nav-tabs">
+					<li id="account"><a href="/setup/setting" data-href="setting.html">계정관리</a></li>
+					<li class="active" id="usage"><a href="/setup/user_management" data-href="user_management.html">사용량관리</a></li>
+					<%
+						if(admin_lv==1){
+					%>
+					<li id="loginHistory"><a href="/setup/login_search" data-href="login_search.html">로그인 이력조회</a></li>
+					<%
+					}
+					%>
+				</ul>
+				<!-- /nav-tabs -->
+				<form action="" class="search-wrap">
+					<fieldset>
+						<table class="table">
+							<caption class="sr-only-lgd">조회조건</caption>
+							<colgroup>
+								<col width="100">
+								<col width="200">
+								<col width="100">
+								<col width="200">
+								<col width="280">
+								<col width="*">
+							</colgroup>
+							<tbody>
+								<tr>
+									<th><label for="search_01">기간조회</label></th>
+									<td>
+										<div class="form-inline">
+											<div class="form-group">
+												<label class="sr-only" for="dateFrom">Start Date</label>
+												<input class="form-control input-sm" id="dateFrom" style="width: 90px;" type="text" placeholder="yyyy-mm-dd" data-date="">
+											</div> ~
+											<div class="form-group">
+												<label class="sr-only" for="dateTo">End Date</label>
+												<input class="form-control input-sm" id="dateTo" style="width: 90px;" type="text" placeholder="yyyy-mm-dd" data-date="">
+											</div>
+											<button class="btn btn-ico" id="setDate" aria-label="calendar" type="button">
+												<span class="ico ico-calendar" aria-hidden="true"></span>
+											</button>
+										</div>
+										<!-- /form-inline -->
+									</td>
+									<th><label for="input01">접속자ID</label></th>
+									<td><input type="text" class="form-control input-sm" id="input01" placeholder="."></td>
+									<td><button class="btn btn-lgd btn-sm" type="button">조회</button></td>
+									<td></td>
+								</tr>
+							</tbody>
+						</table>
+					</fieldset>
+				</form>
+				<!-- /search-wrap -->
+					<div class="module-group clearfix">
+						<div class="pull-left form-inline">
+							<div class="form-group">
+								<label for="pageCount" class="sr-only">페이지 갯수</label>
+								<select class="form-control input-sm" id="pageCount">
+									<option>1</option>
+									<option>2</option>
+									<option>3</option>
+									<option>4</option>
+									<option>5</option>
+								</select>
+							</div>
+							<div class="form-group">
+								<label class="sr-only">페이징</label>
+								<p class="form-control-static">건 / 페이지 <small class="text-gray">(총 1,200건)</small></p>
+							</div>
+						</div>
+						<!-- 버튼 영역
+						<div class="btn-toolbar pull-right" role="toolbar" aria-label="">
+							<div class="btn-group">
+								<button type="button" class="btn btn-default btn-sm ico-lgd"><span class="fa fa-plus"></span> 추가</button>
+								<button type="button" class="btn btn-default btn-sm ico-lgd"><span class="fa fa-minus"></span> 삭제</button>
+							</div>
+						</div>
+						-->
+					</div>
+					<!-- /module-group -->
+					<div class="grid-wrap">
+							<table class="table table-bordered" summary="사용량관리목록">
+								<caption class="sr-only">사용량관리목록</caption>
+									<colgroup>
+										<col width="5%">
+										<col width="15%">
+										<col width="15%">
+										<col width="15%">
+										<col width="17%">
+										<col width="17%">
+										<col width="16%">
+									</colgroup>
+								<thead>
+									<tr>
+										<th scope="col">번호</th>
+										<th scope="col">접속시간</th>
+										<th scope="col">접속종료시간</th>
+										<th scope="col">아이디</th>
+										<th scope="col">접속IP</th>
+										<th scope="col">접속브라우저</th>
+										<th scope="col">상태</th>
+									</tr>
+								</thead>
+								<tbody>
+									<tr>
+										<td class="text-center">1</td>
+										<td class="text-center">2016-00-00 10:49:55</td>
+										<td class="text-center">2016-00-00 10:49:55</td>
+										<td class="text-center">아이디</td>
+										<td class="text-center">100.00.00.00</td>
+										<td class="text-center">IE11</td>
+										<td class="text-center">로그인</td>
+                                    </tr>
+									<tr>
+										<td class="text-center">2</td>
+										<td class="text-center">2016-00-00 10:49:55</td>
+										<td class="text-center">2016-00-00 10:49:55</td>
+										<td class="text-center">아이디</td>
+										<td class="text-center">100.00.00.00</td>
+										<td class="text-center">IE11</td>
+										<td class="text-center">로그인</td>
+                                    </tr>
+									<tr>
+										<td class="text-center">3</td>
+										<td class="text-center">2016-00-00 10:49:55</td>
+										<td class="text-center">2016-00-00 10:49:55</td>
+										<td class="text-center">아이디</td>
+										<td class="text-center">100.00.00.00</td>
+										<td class="text-center">IE11</td>
+										<td class="text-center">로그인</td>
+                                    </tr>
+									<tr>
+										<td class="text-center">4</td>
+										<td class="text-center">2016-00-00 10:49:55</td>
+										<td class="text-center">2016-00-00 10:49:55</td>
+										<td class="text-center">아이디</td>
+										<td class="text-center">100.00.00.00</td>
+										<td class="text-center">IE11</td>
+										<td class="text-center">로그인</td>
+                                    </tr>
+									<tr>
+										<td class="text-center">5</td>
+										<td class="text-center">2016-00-00 10:49:55</td>
+										<td class="text-center">2016-00-00 10:49:55</td>
+										<td class="text-center">아이디</td>
+										<td class="text-center">100.00.00.00</td>
+										<td class="text-center">IE11</td>
+										<td class="text-center">로그인</td>
+                                    </tr>
+									<tr>
+										<td class="text-center">6</td>
+										<td class="text-center">2016-00-00 10:49:55</td>
+										<td class="text-center">2016-00-00 10:49:55</td>
+										<td class="text-center">아이디</td>
+										<td class="text-center">100.00.00.00</td>
+										<td class="text-center">IE11</td>
+										<td class="text-center">로그인</td>
+                                    </tr>
+									<tr>
+										<td class="text-center">7</td>
+										<td class="text-center">2016-00-00 10:49:55</td>
+										<td class="text-center">2016-00-00 10:49:55</td>
+										<td class="text-center">아이디</td>
+										<td class="text-center">100.00.00.00</td>
+										<td class="text-center">IE11</td>
+										<td class="text-center">로그인</td>
+                                    </tr>
+									<tr>
+										<td class="text-center">8</td>
+										<td class="text-center">2016-00-00 10:49:55</td>
+										<td class="text-center">2016-00-00 10:49:55</td>
+										<td class="text-center">아이디</td>
+										<td class="text-center">100.00.00.00</td>
+										<td class="text-center">IE11</td>
+										<td class="text-center">로그인</td>
+                                    </tr>
+									<tr>
+										<td class="text-center">9</td>
+										<td class="text-center">2016-00-00 10:49:55</td>
+										<td class="text-center">2016-00-00 10:49:55</td>
+										<td class="text-center">아이디</td>
+										<td class="text-center">100.00.00.00</td>
+										<td class="text-center">IE11</td>
+										<td class="text-center">로그인</td>
+                                    </tr>
+									<tr>
+										<td class="text-center">10</td>
+										<td class="text-center">2016-00-00 10:49:55</td>
+										<td class="text-center">2016-00-00 10:49:55</td>
+										<td class="text-center">아이디</td>
+										<td class="text-center">100.00.00.00</td>
+										<td class="text-center">IE11</td>
+										<td class="text-center">로그인</td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+					<!-- /grid-wrap -->
+					<nav class="text-center">
+						<ul class="pagination">
+							<li class="first">
+								<a href="#" aria-label="Previous">
+									<span class="ico ico-paging-first" aria-hidden="true"></span>
+								</a>
+							</li>
+							<li class="prev">
+								<a href="#" aria-label="Previous">
+									<span class="ico ico-paging-prev" aria-hidden="true"></span>
+								</a>
+							</li>
+							<li class="active"><a href="#">1</a></li>
+							<li><a href="#">2</a></li>
+							<li><a href="#">3</a></li>
+							<li><a href="#">4</a></li>
+							<li><a href="#">5</a></li>
+							<li class="next">
+								<a href="#" aria-label="Previous">
+									<span class="ico ico-paging-next" aria-hidden="true"></span>
+								</a>
+							</li>
+							<li class="end">
+								<a href="#" aria-label="Previous">
+									<span class="ico ico-paging-end" aria-hidden="true"></span>
+								</a>
+							</li>
+						</ul>
+					</nav>
+					<!-- /pagination -->
+
+			</section>
+			<!-- /page-content -->
+		</div>
+		<!-- /frame-container -->
+
+
+	</div>
+	<!-- /wrap -->
+
+	<% include ../common/scripts %>
+
+	<script>
+			uxp.searchBox();
+			uxp.datepicker.fromTo('#setDate', '#dateFrom', '#dateTo');
+			//gnb scroll
+			$(window).resize(function() {
+				uxp.autoHeight('.grid-wrap', 300);
+			}).resize();
+	</script>
+</body>
+</html>

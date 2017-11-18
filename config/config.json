@@ -1,0 +1,7 @@
+{
+  "Mode" : "dev",
+  "SecureOnOff" : false,
+  "WebPort" : 8080,
+  "SecureWebPort" : 443,
+  "AppServer" : false
+}

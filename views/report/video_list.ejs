@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <% include ../common/head %>
+</head>
+
+<body class="frame-body">
+    <div class="page-loading">
+        <div class="loading">
+            <p class="">Loading...</p>
+        </div>
+        <div class="overlay"></div>
+    </div>
+    <!-- /page-loading -->
+
+    <div class="wrap">
+        <% include ../common/header %>
+            <div class="frame-container">
+                <section class="page-content">
+                    <header class="page-header clearfix">
+                        <h2 class="pull-left">영상이력조회</h2>
+                        <div class="pull-right">
+                            <button type="button" id="fullFoldingBtn" class="btn btn-ico" aria-label="Full Toggle">
+							<span class="ico ico-search-close" aria-hidden="true"></span>
+						</button>
+                            <button type="button" id="favorite" class="btn btn-ico" aria-label="Favorite">
+							<!-- <span class="ico ico-favorite-on" aria-hidden="true"></span> -->
+							<span class="ico ico-favorite-off" aria-hidden="true"></span>
+						</button>
+                        </div>
+                    </header>
+                    <!-- /page-header -->
+
+                    <form class="search-wrap" action="/report" method="get">
+                        <fieldset>
+                            <table class="table" summary="영상이력조회 조회조건">
+                                <caption class="sr-only-lgd">영상이력조회 조회조건</caption>
+                                <colgroup>
+                                    <col width="100">
+                                    <col width="200">
+                                    <col width="100">
+                                    <col width="200">
+                                    <col width="100">
+                                    <col width="280">
+                                    <col width="*">
+                                </colgroup>
+                                <tbody>
+                                    <tr>
+                                        <th><label for="input01">성명</label></th>
+                                        <td>
+                                            <input class="form-control input-sm" name="custNM" id="input01" type="text" placeholder=".">
+                                        </td>
+                                        <th><label for="input02">발신번호</label></th>
+                                        <td>
+                                            <input class="form-control input-sm" name="custCTN" id="input02" type="text" placeholder=".">
+                                        </td>
+                                        <th><label for="select01">부서</label></th>
+                                        <td>
+                                            <select class="form-control input-sm" name="custDEPT" id="select01">
+											<option value="">선택</option>
+											<option>설비환경PI팀</option>
+										</select>
+                                        </td>
+                                        <td></td>
+                                    </tr>
+                                    <tr>
+                                        <th><label for="input03">채널명</label></th>
+                                        <td>
+                                            <input class="form-control input-sm" id="input03" type="text" placeholder=".">
+                                        </td>
+                                        <th><label for="select01">촬영유형</label></th>
+                                        <td>
+                                            <select class="form-control input-sm" id="select01">
+											<option>전체</option>
+											<option>일반촬영</option>
+                                            <option>비상촬영</option>
+										</select>
+                                        </td>
+                                        <th><label for="search_03">등록기간</label></th>
+                                        <td>
+                                            <div class="form-inline">
+                                                <div class="form-group">
+                                                    <label class="sr-only" for="dateFrom">Start Date</label>
+                                                    <input class="form-control input-sm" name="dateFrom" id="dateFrom" style="width: 90px;" type="text" placeholder="yyyy-mm-dd">
+                                                </div> ~
+                                                <div class="form-group">
+                                                    <label class="sr-only" for="dateTo">End Date</label>
+                                                    <input class="form-control input-sm" name="dateTO" id="dateTo" style="width: 90px;" type="text" placeholder="yyyy-mm-dd">
+                                                </div>
+                                                <button class="btn btn-ico" id="setDate" aria-label="calendar" type="button">
+												<span class="ico ico-calendar" aria-hidden="true"></span>
+											</button>
+                                            </div>
+                                        </td>
+                                        <td class="text-left"><button class="btn btn-lgd btn-sm align-right" type="submit">조회</button></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </fieldset>
+                        <!-- /fieldset -->
+                    </form>
+                    <!-- /search-wrap -->
+                    <div class="module-group clearfix">
+                        <div class="pull-left form-inline">
+                            <div class="form-group">
+                                <label for="pageCount" class="sr-only">페이지 갯수</label>
+                                <select class="form-control input-sm" id="pageCount">
+								<option>1</option>
+								<option>2</option>
+								<option>3</option>
+								<option>4</option>
+								<option>5</option>
+							</select>
+                            </div>
+                            <div class="form-group">
+                                <label class="sr-only">페이징</label>
+                                <p class="form-control-static">건 / 페이지 <small class="text-gray" id="count"></small></p>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- /module header -->
+                    <div class="grid-wrap">
+                        <table class="table table-bordered table-selecter" id="videoHistory" summary="실시간현황 목록">
+                            <caption class="sr-only">실시간현황 목록</caption>
+                            <colgroup>
+                                <col width="4%">
+                                <col width="11%">
+                                <col width="11%">
+                                <col width="11%">
+                                <col width="11%">
+                                <col width="11%">
+                                <col width="11%">
+                                <col width="11%">
+                                <col width="11%">
+                                <col width="11%">
+                            </colgroup>
+                            <thead>
+                                <tr>
+                                    <th scope="col">번호</th>
+                                    <th scope="col">발신번호</th>
+                                    <th scope="col">성명</th>
+                                    <th scope="col">부서명</th>
+                                    <th scope="col">촬영유형</th>
+                                    <th scope="col">채널명</th>
+                                    <th scope="col">서비스시작</th>
+                                    <th scope="col">서비스종료</th>
+                                    <th scope="col">파일크기</th>
+                                    <th scope="col">재생 / 저장 / VMS</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <%
+						if(data.length==0){
+						%>
+                                    <tr>
+                                        <td colspan='10'>데이터가 없습니다.</td>
+                                    </tr>
+                                    <%
+						}
+						else{
+                             for(var i=0; i<data.length; i++)
+                             {
+                                var Item = data[i];
+                        %>
+                                        <tr>
+                                            <td class="text-center vam">1</td>
+                                            <td class="text-center vam"><%=Item.CUST_CTN%></td>
+                                            <td class="text-center vam"><%=Item.CUST_NM%></td>
+                                            <td class="text-center vam"><%=Item.CUST_DEPT_NM%></td>
+                                            <td class="text-center vam"><%=Item.STATUS%></td>
+                                            <td class="text-center vam">테스트</td>
+                                            <td class="text-center vam"><%=Item.INSERT_DATE%></td>
+                                            <td class="text-center vam"><%=Item.UPDATE_DATE%></td>
+                                            <td class="text-center vam"><%=Item.UPLOAD_FILE_SZ%></td>
+                                            <td class="text-center">
+                                                <button class="btn btn-link btn-cams">
+										<i class="ico ico-play" aria-hidden="true" ></i>
+									</button>
+                                                <!--/ 재생 -->
+                                                <button class="btn btn-link btn-cams">
+										<i class="ico ico-download" aria-hidden="true" ></i>
+									</button>
+                                                <!--/ 다운로드 -->
+                                                <button class="btn btn-link btn-cams">
+										<i class="ico ico-vms" aria-hidden="true" ></i>
+									</button>
+                                                <!--/ VMS -->
+                                            </td>
+                                            <%
+                             }
+						 }
+                        %>
+                            </tbody>
+                        </table>
+                        <!-- /table -->
+                    </div>
+                    <!-- /grid-wrap -->
+                    <div class="text-center">
+                        <nav class="pagination" id="paging">
+
+                        </nav>
+                    </div>
+                    <!-- /pagination -->
+
+                </section>
+                <!-- /page-content -->
+            </div>
+            <!-- /frame-container -->
+            <div tabindex="-1" class="modal fade" id="myModal" role="dialog">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header dark">
+                            <button class="close dark" aria-label="Close" type="button" data-dismiss="modal"><span aria-hidden="true">×</span></button>
+                            <h1 class="modal-title">이미지 제목</h1>
+                        </div>
+                        <div class="modal-body">
+
+                        </div>
+                        <!--
+					<div class="modal-footer text-center">
+						<button class="btn btn-darkgray btn-sm" data-dismiss="modal">확인</button>
+					</div>
+					-->
+                    </div>
+                </div>
+            </div>
+
+    </div>
+    <!-- /wrap -->
+
+    <% include ../common/scripts %>
+    <script src="/javascript/c_report.js"></script>
+        <script>
+            $('.img-thumbnail').click(function() {
+                $('.modal-body').empty();
+                $($(this).parents('div').html()).appendTo('.modal-body');
+                $('#myModal').modal({
+                    show: true
+                });
+            });
+        </script>
+        <script type="text/javascript">
+            var data = {};
+            if (getParameterByName('page')) {
+                data.page = getParameterByName('page');
+            }
+            if (getParameterByName('custNM')) {
+                data.custNM = getParameterByName('custNM');
+            }
+            if (getParameterByName('custCTN')) {
+                data.custCTN = getParameterByName('custCTN');
+            }
+            if (getParameterByName('custDEPT')) {
+                data.custDEPT = getParameterByName('custDEPT');
+            }
+            if (getParameterByName('dateFrom')) {
+                data.dateFrom = getParameterByName('dateFrom');
+            }
+            if (getParameterByName('dateTo')) {
+                data.dateTo = getParameterByName('dateTo');
+            }
+            common_list.pagination(getParameterByName('page'), 10, '/report_count', data);
+        </script>
+        <script>
+            $(function() {
+                // UI init
+                uxp.searchBox();
+                //FromTo Datepicker
+                uxp.datepicker.fromTo('#setDate', '#dateFrom', '#dateTo');
+                //gnb scroll
+                $(window).resize(function() {
+                    uxp.autoHeight('.grid-wrap', 300);
+                }).resize();
+
+            });
+        </script>
+
+</body>
+
+</html>

@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <% include ../common/head %>
+        <link href="/plugins/jstree/css/style.css" rel="stylesheet">
+</head>
+
+<body class="frame-body">
+    <div class="page-loading">
+        <div class="loading">
+            <p class="">Loading...</p>
+        </div>
+        <div class="overlay"></div>
+    </div>
+    <!-- /page-loading -->
+
+    <div class="wrap">
+        <% include ../common/header %>
+
+            <div class="frame-container">
+                <section class="page-content">
+                    <header class="page-header clearfix">
+                        <h2 class="pull-left">환경설정</h2>
+                        <div class="pull-right">
+                            <button type="button" id="fullFoldingBtn" class="btn btn-ico" aria-label="Full Toggle">
+							<span class="ico ico-search-close" aria-hidden="true"></span>
+						</button>
+                            <button type="button" id="favorite" class="btn btn-ico" aria-label="Favorite">
+							<!-- <span class="ico ico-favorite-on" aria-hidden="true"></span> -->
+							<span class="ico ico-favorite-off" aria-hidden="true"></span>
+						</button>
+                        </div>
+                    </header>
+                    <!-- /page-header -->
+                    <ul class="nav nav-tabs">
+                        <li class="active"id="account"><a href="/setup/setting" data-href="setting.html">채널관리</a></li>
+                        <li id="usage"><a href="/setup/user_management" data-href="user_management.html">사용량관리</a></li>
+                        <%
+                            if(admin_lv==1){
+                        %>
+                        <li id="loginHistory"><a href="/setup/login_search" data-href="login_search.html">로그인 이력조회</a></li>
+                        <%
+                        }
+                        %>
+                    </ul>
+                    <!-- /nav-tabs -->
+                    <form action="" class="search-wrap">
+                        <fieldset>
+                            <table class="table">
+                                <caption class="sr-only-lgd">조회조건</caption>
+                                <colgroup>
+                                    <col width="100">
+                                    <col width="200">
+                                    <col width="5">
+                                    <col width="500">
+                                    <col width="280">
+                                    <col width="*">
+                                </colgroup>
+                                <tbody>
+                                    <tr>
+                                        <th><label for="search_01">조회조건</label></th>
+                                        <td>
+                                            <select class="form-control input-sm" id="search_01">
+											<option value="">선택</option>
+											<option>발신번호</option>
+											<option>성명</option>
+											<option>부서명</option>
+											<option>촬영유형</option>
+											<option>채널명</option>
+										</select>
+                                        </td>
+                                        <td></td>
+                                        <td><input type="text" class="form-control input-sm" id="search_02" placeholder="."></td>
+                                        <td><button class="btn btn-lgd btn-sm" type="button">조회</button></td>
+                                        <td></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </fieldset>
+                    </form>
+                    <!-- /search-wrap -->
+                    <div class="module-group clearfix">
+                        <div class="pull-left form-inline">
+                            <div class="form-group">
+                                <label for="pageCount" class="sr-only">페이지 갯수</label>
+                                <select class="form-control input-sm" id="pageCount">
+									<option>1</option>
+									<option>2</option>
+									<option>3</option>
+									<option>4</option>
+									<option>5</option>
+								</select>
+                            </div>
+                            <div class="form-group">
+                                <label class="sr-only">페이징</label>
+                                <p class="form-control-static">건 / 페이지 <small class="text-gray" id="count"></small></p>
+                            </div>
+                        </div>
+
+                        <div class="btn-toolbar pull-right" role="toolbar" aria-label="">
+                            <div class="btn-group">
+                                <button type="button" class="btn btn-default btn-sm ico-lgd" data-toggle="modal" data-target="#add"><span class="fa fa-plus"></span> 추가</button>
+                                <button type="button" class="btn btn-default btn-sm ico-lgd" onclick="deleteChannel()"><span class="fa fa-minus"></span> 삭제</button>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- /module-group -->
+                    <div class="grid-wrap">
+                        <table id="chn_list_tbl" class="table table-bordered" summary="채널관리 목록">
+                            <caption class="sr-only">채널관리 목록</caption>
+                            <colgroup>
+                                <col width="5%">
+                                <col width="15%">
+                                <col width="15%">
+                                <col width="15%">
+                                <col width="50%">
+                            </colgroup>
+                            <thead>
+                                <tr>
+                                    <th scope="col">
+                                        <%# <div class="checkbox checkbox-uxp checkbox-inline">
+                                            <input type="checkbox" id="inlineCheckbox" value="option">
+                                            <label for="inlineCheckbox"></label>
+                                        </div>%>
+                                    </th>
+                                    <th scope="col">채널명</th>
+                                    <th scope="col">사용자수</th>
+                                    <th scope="col">관리자 이름</th>
+                                    <th scope="col">설명</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <%
+									if(data.length==0){
+									%>
+                                    <tr>
+                                        <td colspan='10'>데이터가 없습니다.</td>
+                                    </tr>
+                                    <%
+									}
+									else{
+			                             for(var i=0; i<data.length; i++)
+			                             {
+			                                var Item = data[i];
+			                        %>
+                                        <tr>
+                                            <td class="text-center vam">
+                                                <div class="checkbox checkbox-uxp checkbox-inline">
+                                                    <input type="checkbox" id="inlineCheckbox<%= i %>" class="inlineCheckbox" value="option<%= i %>" name="chn_list_chk">
+                                                    <label for="inlineCheckbox<%= i %>"></label>
+                                                </div>
+                                            </td>
+                                            <td class="text-center"><%=Item.CTL_NM%></td>
+                                            <td class="text-center vam">
+                                                <%=Item.INSERT_DATE%>
+                                            </td>
+                                            <td class="text-center vam">
+                                                <%=Item.CTL_ADMIN_NM%>
+                                            </td>
+                                            <td class="text-center vam">
+                                                <%=Item.CHANNEL_DESC%>
+                                            </td>
+                                        </tr>
+                                        <%
+								}
+								}
+								%>
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- /grid-wrap -->
+                    <div class="text-center">
+                        <nav class="pagination" id="paging">
+
+                        </nav>
+                    </div>
+                    <!-- /pagination -->
+                    <div class="shuttle">
+                        <div class="row">
+                            <div class="col-xs-5 vat">
+                                <div class="sub-header">
+                                    <h4 id="channel">채널명 : 수퍼 울트라 채널</h4>
+                                </div>
+                                <table id="ultra_chn_tbl" class="table table-bordered table-condensed" summary="채널명">
+                                    <caption class="sr-only">채널명</caption>
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">
+                                                <!--
+                                                <div class="checkbox checkbox-uxp checkbox-inline">
+                                                    <input type="checkbox" id="inlineCheckbox00" value="option0">
+                                                    <label for="inlineCheckbox00"></label>
+                                                </div>
+                                                -->
+                                            </th>
+                                            <th scope="col">이름</th>
+                                            <th scope="col">부서명</th>
+                                            <th scope="col">전화번호</th>
+                                            <th scope="col">채널관리자</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="list">
+                                    </tbody>
+                                </table>
+                                <!-- /table -->
+                            </div>
+                            <!-- /col-xs-5 -->
+                            <div class="col-xs-2 text-center">
+                                <div class="btn-shuttle">
+                                    <!--<button class="btn btn-ico" />
+									<span class="ico ico-shuttle-right"></span>
+								</button>
+                -->
+                                </div>
+                                <div id="right_arrow_btn" class="btn-shuttle">
+                                    <button class="btn btn-ico">
+									<span class="ico ico-shuttle-right-all"></span>
+								</button>
+                                </div>
+                                <div class="btn-shuttle">
+                                    <!--<button class="btn btn-ico">
+									<span class="ico ico-shuttle-left" style='wid'>
+                </span>
+								</button>
+                -->
+                                </div>
+                                <div class="btn-shuttle">
+                                    <button id="left_arrow_btn" class="btn btn-ico">
+									<span class="ico ico-shuttle-left-all"></span>
+								</button>
+                                </div>
+                            </div>
+                            <!-- /col-xs-2 -->
+
+                            <div class="col-xs-5">
+                                <div class="sub-header">
+                                    <h4>채널관리자</h4>
+                                </div>
+                                <div class="panel panel-default">
+                                    <div class="panel-body" style="overflow: auto; height: 280px;">
+                                        <form action="" class="search-wrap">
+                                            <fieldset>
+                                                <table class="table">
+                                                    <caption class="sr-only-lgd">조회조건</caption>
+                                                    <colgroup>
+                                                        <col width="100">
+                                                        <col width="200">
+                                                        <col width="5">
+                                                        <col width="500">
+                                                        <col width="280">
+                                                        <col width="*">
+                                                    </colgroup>
+                                                    <tbody>
+                                                        <tr>
+                                                            <th><label for="search_01">조회조건</label></th>
+                                                            <td>
+                                                                <select class="form-control input-sm" id="search_01">
+																<option value="">선택</option>
+																<option>발신번호</option>
+																<option>성명</option>      
+																<option>부서명</option>
+																<option>촬영유형</option>
+																<option>채널명</option>
+															</select>
+                                                            </td>
+                                                            <td></td>
+                                                            <td><input type="text" class="form-control input-sm" id="search_02" placeholder="."></td>
+                                                            <td><button class="btn btn-lgd btn-sm" type="button">조회</button></td>
+                                                            <td></td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </fieldset>
+                                        </form>
+                                        <!-- /search-wrap -->
+                                        <div id="jstree01"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- /col-xs-5 -->
+                        </div>
+                        <!-- /row -->
+                    </div>
+                    <!-- /shuttle -->
+                    <div class="btn-wrap text-right">
+                        <button id="chnmng_save_btn" class="btn btn-darkgray btn-sm" type="button">저장</button>
+                        <button id="chnmng_cancel_btn" class="btn btn-gray btn-sm" type="button">취소</button>
+                        <!-- 삭제해주세요.메시지 팝업 -->
+                        <button class="btn btn-gray btn-sm" type="button" data-toggle="modal" data-target="#message1">메시지팝업1</button>
+                        <button class="btn btn-gray btn-sm" type="button" data-toggle="modal" data-target="#message2">메시지팝업2</button>
+                        <button class="btn btn-gray btn-sm" type="button" data-toggle="modal" data-target="#message3">메시지팝업3</button>
+                    </div>
+                    <!-- /btn-wrap -->
+                </section>
+                <!-- /page-content -->
+            </div>
+            <!-- /frame-container -->
+            <div class="modal fade" id="add" role="dialog">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content" action="/channel" method="post">
+                        <div class="modal-header dark">
+                            <button class="close dark" aria-label="Close" type="button" data-dismiss="modal"><span aria-hidden="true">×</span></button>
+                            <h1 class="modal-title">채널 추가</h1>
+                        </div>
+                        <div class="modal-body">
+                            <table class="table table-condensed" summary="채널추가">
+                                <caption class="sr-only-lgd">채널추가</caption>
+                                <colgroup>
+                                    <col width="17%">
+                                    <col width="">
+                                </colgroup>
+                                <tbody>
+                                    <tr>
+                                        <th scope="row">
+                                            <label for="input01">채널명</label>
+                                        </th>
+                                        <td>
+                                            <input name="input01" class="form-control input-sm" id="channel_name" type="text" placeholder="text">
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">
+                                            <label for="textarea01">설명</label>
+                                        </th>
+                                        <td>
+                                            <textarea class="form-control input-sm" id="channel_desc" rows="10"></textarea>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="modal-footer">
+                            <button class="btn btn-gray btn-sm" data-dismiss="modal">취소</button>
+                            <button class="btn btn-darkgray btn-sm" id="addChannel" data-dismiss="modal">확인</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!--/ modal-->
+
+            <div tabindex="-1" class="modal fade" id="message1" role="dialog" aria-hidden="true" aria-labelledby="myModalLabel">
+                <div class="modal-dialog modal-sm">
+                    <div class="modal-content">
+                        <div class="modal-header dark">
+                            <button class="close dark" aria-label="Close" type="button" data-dismiss="modal"><span aria-hidden="true">×</span></button>
+                            <h4 class="modal-title">채널 관리자 미설정</h4>
+                        </div>
+                        <!-- /modal-header -->
+                        <div class="modal-body">
+                            <p class="modal-ico ico-lgd"><span class="fa fa-exclamation-triangle fa-5x" aria-hidden="true" aria-label="WARNING"></span></p>
+                            <p class="message-desc">채널관리자를 선택해주세요.</p>
+                        </div>
+                        <!-- /modal-body -->
+                        <div class="modal-footer text-center">
+                            <button class="btn btn-darkgray btn-sm" type="button" data-dismiss="modal">확인</button>
+                        </div>
+                        <!-- /modal-footer -->
+                    </div>
+                    <!-- /modal-content -->
+                </div>
+                <!-- /modal-dialog -->
+            </div>
+            <!-- /modal -->
+
+            <div tabindex="-1" class="modal fade" id="message2" role="dialog" aria-hidden="true" aria-labelledby="myModalLabel">
+                <div class="modal-dialog modal-sm">
+                    <div class="modal-content">
+                        <div class="modal-header dark">
+                            <button class="close dark" type="button" aria-label="Close" data-dismiss="modal"><span aria-hidden="true">×</span></button>
+                            <h4 class="modal-title">채널 삭제</h4>
+                        </div>
+                        <!-- /modal-header -->
+                        <div class="modal-body">
+                            <p class="modal-ico ico-lgd"><span class="fa fa fa-question-circle fa-5x" aria-hidden="true" aria-label="question"></span></p>
+                            <h4 class="message-title">슈퍼울트라 채널</h4>
+                            <p class="message-desc">채널을 삭제하시겠습니까?</p>
+                        </div>
+                        <!-- /modal-body -->
+                        <div class="modal-footer text-center">
+                            <button class="btn btn-gray btn-sm" type="button" aria-label="Close" data-dismiss="modal">아니오</button>
+                            <button class="btn btn-darkgray btn-sm" type="button">예</button>
+                        </div>
+                        <!-- /modal-footer -->
+                    </div>
+                    <!-- /modal-content -->
+                </div>
+                <!-- /modal-dialog -->
+            </div>
+            <!-- /modal -->
+            <div tabindex="-1" class="modal fade" id="message3" role="dialog" aria-hidden="true" aria-labelledby="myModalLabel">
+                <div class="modal-dialog modal-sm">
+                    <div class="modal-content">
+                        <div class="modal-header dark">
+                            <button class="close dark" aria-label="Close" type="button" data-dismiss="modal"><span aria-hidden="true">×</span></button>
+                            <h4 class="modal-title">확인</h4>
+                        </div>
+                        <!-- /modal-header -->
+                        <div class="modal-body">
+                            <p class="modal-ico ico-lgd"><span class="fa fa-exclamation-triangle fa-5x" aria-hidden="true" aria-label="WARNING"></span></p>
+                            <h4 class="message-title">사용중인 채널입니다.</h4>
+                            <p class="message-desc">삭제 불가능합니다.</p>
+                        </div>
+                        <!-- /modal-body -->
+                        <div class="modal-footer text-center">
+                            <button class="btn btn-darkgray btn-sm" type="button" data-dismiss="modal">확인</button>
+                        </div>
+                        <!-- /modal-footer -->
+                    </div>
+                    <!-- /modal-content -->
+                </div>
+                <!-- /modal-dialog -->
+            </div>
+            <!-- /modal -->
+    </div>
+    <!-- /wrap -->
+
+    <% include ../common/scripts %>
+        <script src="/plugins/jstree/js/jstree.js"></script>
+        <script src="/javascript/c_setting.js"></script>
+        <!-- 페이지 스크립트 -->
+        <script>
+            var chResult = '00';
+
+          $(function() {
+            // UI init
+            uxp.searchBox();
+            jstreeLoad();
+            $("#chn_list_tbl").find("tbody tr:eq(0) input:eq(0)").trigger("click");
+          });
+
+          function jstreeLoad() {
+            $.ajax({
+              type : 'post',
+              url : '/setup/channel_management',
+              success : function(data) {
+                $.each(data, function(idx, item) {
+                  data[idx] = {
+                    id : item.id,
+                    parent : item.parent,
+                    text : item.text,
+                    mobile : item.mobile,
+                    parent_name : item.parent_name
+                  };
+                });
+                
+                $.jstree.defaults.contextmenu = false;
+                $('#jstree01').jstree({
+                  "core" : {
+                  "animation" : 0,
+                  "check_callback" : true,
+                  "themes" : { "stripes" : true , icons : false },
+                  "data" : data
+                  },
+                  "types" : {
+                  "#" : {
+                    "max_children" : 1,
+                    "max_depth" : 4,
+                    "valid_children" : ["root"]
+                  },
+                  "root" : {
+                    "icon" : "/static/3.3.4/assets/images/tree_icon.png"
+                    //"valid_children" : ["default"]
+                  },
+                  /*
+                  "default" : {
+                    "valid_children" : ["default","file"]
+                  },
+                  */
+                  "file" : {
+                    "icon" : "glyphicon glyphicon-file",
+                    "valid_children" : []
+                  }
+                  },
+                  "plugins" : [
+                  "contextmenu", "dnd", "search",
+                  "state", "types", "wholerow",
+                  "checkbox"
+                  ],
+                  "contenxtmenu" : false
+                });
+              }
+            });
+
+            $('#jstree01').jstree('deselect_all');
+
+            $('#chnmng_save_btn').click(function() {
+              chManger.run();
+            });
+
+            $('#chnmng_cancel_btn').click(function() {
+              $('#jstree01').jstree('deselect_all');
+              chManger.setDefault();
+              $("input[name=chn_list_chk]").each(function (){
+                if($(this).is(':checked')) {
+                    $(this).trigger('click');
+                }
+              });
+            });
+
+            $('#right_arrow_btn').click(function() {
+              $("input[name=ultra_chk]:checked").each(function(){
+                chResult = '00';
+                var userInfo = {};
+                userInfo.DEV_KEY = $(this).val();
+
+                chManger.deleteUser(userInfo);
+
+                if(chResult!='99') {
+                    $(this).parents("tr").remove();
+                }
+              });
+            });
+
+            $('#left_arrow_btn').click(function() {
+                if($("input[name=ultra_chk]").length==0) {
+                    $("#ultra_chn_tbl tbody tr").remove();
+                }
+
+              var sel_item = $('#jstree01').jstree('get_selected', true);
+
+              var arrayData = new Array();
+              for(var i=0; i<sel_item.length; i++) {
+                var tId = sel_item[i].original.id;
+                var tText = sel_item[i].original.text;
+                var tMobile = sel_item[i].original.mobile;
+                var tParentName = sel_item[i].original.parent_name;
+
+                if(sel_item[i].id.length==6) {
+                  var arrayTemp = new Array();
+                  arrayTemp.push(tId);
+                  arrayTemp.push(tText);
+                  arrayTemp.push(tMobile);
+                  arrayTemp.push(tParentName);
+                  arrayData.push(arrayTemp);
+                }
+              }
+
+              if(arrayData.length==0) {
+                alert('최소 한명을 선택해야 합니다.');
+                return;
+              } else {
+
+                for(var i=0; i<arrayData.length; i++) {
+                    chResult = '00';
+                    var html = "";
+                    html += "<tr><td class='text-center'><div class='checkbox checkbox-uxp checkbox-inline'>";
+                    html += "<input type='checkbox' name='ultra_chk' value='"+arrayData[i][0]+"'>";
+                    html += "<label for='inlineCheckbox5'></label><div>";
+                    html += "<td class='text-center'>"+arrayData[i][1]+"</td>";
+                    html += "<td class='text-center'>"+arrayData[i][3]+"</td>";
+                    html += "<td class='text-center'>"+arrayData[i][2]+"</td>";
+                    html += "<td class='text-center'><div class='radio radio-uxp radio-inline'>";
+                    html += "<input name='chnMngBtn' type='radio' value='2' onclick='changeClick(this);'/>"
+                    html += "<label for='inlineRadio1'></label>";
+                    html += "</div></td>";
+                    html += "</tr>";
+
+                    // 채널 추가
+                    var userInfo = {};
+                    userInfo.DEV_KEY = arrayData[i][0];
+                    userInfo.DEV_NM = arrayData[i][1];
+                    userInfo.DEV_DEPT_NM = arrayData[i][3];
+                    userInfo.MOBILE_NUM = arrayData[i][2];
+                    userInfo.CHANNEL_NM = $('.sub-header > h4').eq(0).text().split(':')[1].trim();
+                    
+                    var chkDuplUser = true;
+                    $("input[name=ultra_chk]").each(function(){
+                        if($(this).val()==arrayData[i][0]) {
+                            chkDuplUser = false;
+                        }
+                    });
+
+                    if(chkDuplUser) {
+                        chManger.addUser(userInfo);
+                    
+                        if(chResult=='00') {
+                            $("#ultra_chn_tbl tbody").append(html);
+                        };
+                    }
+                }
+              }
+            });
+          }
+
+          function changeClick(t) {
+            var obj = {};
+            obj.DEV_KEY = $(t).parents('tr').find('input[name=ultra_chk]').val();
+            obj.LEVEL = '2';
+            obj.CHANNEL_NM = $('.sub-header > h4').eq(0).text().split(':')[1].trim();
+
+            chManger.changeManger(obj);
+          }
+
+          function deleteChannel() {            
+            if (confirm("정말 삭제하시겠습니까??") == true) {
+                //common_list.ajaxRequest('/channel/services?channel_nm', 'get', {});
+                var channe_nm = $('.sub-header > h4').eq(0).text().split(':')[1].trim();
+                $.ajax({
+                    url: '/channel/services?channel_nm=' + encodeURI(channe_nm),
+                    type: 'get',
+                    data: {},
+                    success: function(data) {
+                        if (data.SVC_CNT > 0) {
+                            alert("서비스중인 채널은 삭제할 수 없습니다.")
+                            return; 
+                        } else {
+                            var obj = {};
+                            obj.CHANNEL_NM = $('.sub-header > h4').eq(0).text().split(':')[1].trim();
+                            common_list.ajaxRequest('/channel', 'delete', obj);
+
+                            // 리프레시
+                        }
+                    }
+                });                
+            }
+        }
+
+        </script>
+        <script>
+        // jstree load
+
+        </script>
+        <script type="text/javascript">
+            var data = {};
+            if (getParameterByName('page')) {
+                data.page = getParameterByName('page');
+            }
+            if (getParameterByName('searchKey')) {
+                data.page = getParameterByName('searchKey');
+            }
+            if (getParameterByName('searchVal')) {
+                data.page = getParameterByName('searchVal');
+            }
+            common_list.pagination(getParameterByName('page'), 3, '/setup/setting_count', data);
+        </script>
+</body>
+</html>

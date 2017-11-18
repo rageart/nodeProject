@@ -1,0 +1,96 @@
+@charset "UTF-8";
+
+/**
+ * Description: LGD LTE.
+ * Version: 1.0.0
+ * Last update: 2017/09/27
+ * Author: 유미정
+ */
+
+
+/* ==========================================================================
+   직캡
+    thumbnail
+   ========================================================================== */
+
+.img-thumbnail{
+	 border-radius:0px;
+	 padding:0px;
+	 border: #f4f4f4 1px solid;
+}
+.img-thumbnail:hover{
+	border: rgba(243, 77, 120, 0.7) 1px solid;
+}
+.img-thumbnail-area{
+	width:70px !important;
+	height:40px !important;
+	margin:0px auto;
+}
+.thumbnail-list{
+    margin:0px;
+    padding: 0px;
+}
+.thumbnail-list li{
+    display: inline-block;
+    white-space: normal;
+    margin-right: 20px;
+    margin-bottom: 20px;
+    vertical-align: top;
+    list-style: none;
+}
+.thumbnail-list li:last-child{
+    margin-right: 0px;
+}
+
+.thumbnail-list-item::before {
+    display: block;
+    content: '';
+    color: #eee;
+    overflow: hidden;
+    border-radius: 0px;
+}
+
+/* ==========================================================================
+   기타 추가
+   ========================================================================== */
+.vam{
+	vertical-align: middle !important;
+}
+.vat{
+	vertical-align: top !important;
+}
+.video-detail{
+    /*overflow-y: auto;
+    overflow-x: hidden;*/
+    padding: 0px;
+    /*height:580px;*/
+}
+/* ==========================================================================
+   직캡 아이콘
+   ========================================================================== */
+.ico-play{
+    width: 24px;
+    height: 24px;
+    background: url(../images/cam/ic_play.png) no-repeat 0;
+}
+.ico-download{
+    width: 24px;
+    height: 24px;
+    background: url(../images/cam/ic_download.png) no-repeat 0;
+}
+.ico-vms{
+    width: 24px;
+    height: 24px;
+    background: url(../images/cam/ic_vms.png) no-repeat 0;
+}
+.btn-cams {
+    padding: 0px 2px !important;
+}
+/* ==========================================================================
+   map
+   ========================================================================== */
+
+.map{
+    width:100%;
+    height: 400px;
+}

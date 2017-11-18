@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <% include ../common/head %>
+        <link href="/plugins/notification/notification.min.css" rel="stylesheet">
+        <link href="/plugins/jstree/css/style.css" rel="stylesheet">
+</head>
+
+<body class="frame-body">
+    <div class="page-loading">
+        <div class="loading">
+            <p class="">Loading...</p>
+        </div>
+        <div class="overlay"></div>
+    </div>
+    <!-- /page-loading -->
+
+    <div class="wrap">
+        <% include ../common/header %>
+
+            <div class="frame-container">
+                <section class="page-content">
+                    <header class="page-header clearfix">
+                        <h2 class="pull-left">실시간현황</h2>
+                        <div class="pull-right">
+                            <button type="button" id="fullFoldingBtn" class="btn btn-ico" aria-label="Full Toggle">
+							<span class="ico ico-search-close" aria-hidden="true"></span>
+						</button>
+                            <button type="button" id="favorite" class="btn btn-ico" aria-label="Favorite">
+							<!-- <span class="ico ico-favorite-on" aria-hidden="true"></span> -->
+							<span class="ico ico-favorite-off" aria-hidden="true"></span>
+						</button>
+                        </div>
+                    </header>
+                    <!-- /page-header -->
+
+                    <form action="/status" method="get" class="search-wrap">
+                        <fieldset>
+                            <table class="table">
+                                <caption class="sr-only-lgd">조회조건</caption>
+                                <colgroup>
+                                    <col width="100">
+                                    <col width="200">
+                                    <col width="5">
+                                    <col width="500">
+                                    <col width="280">
+                                    <col width="*">
+                                </colgroup>
+                                <tbody>
+                                    <tr>
+                                        <th><label for="search_01">조회조건</label></th>
+                                        <td>
+                                            <select class="form-control input-sm" name="searchKey" id="search_01">
+											<option value="">선택</option>
+											<option value="CUST_CTN">발신번호</option>
+											<option value="CUST_NM">성명</option>
+											<option value="CUST_DEPT_NM">부서명</option>
+											<option value="type">촬영유형</option>
+											<option value="CHNM">채널명</option>
+										</select>
+                                        </td>
+                                        <td></td>
+                                        <td><input type="text" class="form-control input-sm" name="searchVal" id="search_02" placeholder="."></td>
+                                        <td><button class="btn btn-lgd btn-sm" type="submit">조회</button></td>
+                                        <td></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </fieldset>
+                    </form>
+                    <!-- /search-wrap -->
+                    <div class="module-group clearfix">
+                        <div class="pull-left form-inline">
+                            <div class="form-group">
+                                <label for="pageCount" class="sr-only">페이지 갯수</label>
+                                <select class="form-control input-sm" id="pageCount">
+								<option>1</option>
+								<option>2</option>
+								<option>3</option>
+								<option>4</option>
+								<option>5</option>
+							</select>
+                            </div>
+                            <div class="form-group">
+                                <label class="sr-only">페이징</label>
+                                <p class="form-control-static">건 / 페이지 <small class="text-gray" id="count"></small></p>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- /module header -->
+                    <div class="grid-wrap">
+                        <table class="table table-bordered table-selecter" id="realtime_list" summary="실시간현황 목록">
+                            <caption class="sr-only">실시간현황 목록</caption>
+                            <colgroup>
+                                <col width="4%">
+                                <col width="15%">
+                                <col width="10%">
+                                <col width="10%">
+                                <col width="10%">
+                                <col width="10%">
+                                <col width="12%">
+                                <col width="12%">
+                                <col width="12%">
+                            </colgroup>
+                            <thead>
+                                <tr>
+                                    <th scope="col">번호</th>
+                                    <th scope="col">이미지</th>
+                                    <th scope="col">발신번호</th>
+                                    <th scope="col">성명</th>
+                                    <th scope="col">부서명</th>
+                                    <th scope="col">촬영유형</th>
+                                    <th scope="col">채널명</th>
+                                    <th scope="col">서비스시작</th>
+                                    <th scope="col">사용시간</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <%
+					if(data.length==0){
+					%>
+                                    <tr>
+                                        <td colspan='10'>데이터가 없습니다.</td>
+                                    </tr>
+                                    <%
+					}
+					else{
+						 for(var i=0; i<data.length; i++)
+						 {
+							var Item = data[i];
+					%>
+                                        <tr>
+                                            <td class="text-center vam">1</td>
+                                            <td class="text-center">
+                                                <!-- <img src="/images/cam/sample.png" alt="..." class="img-thumbnail"> -->
+                                                <div class="img-thumbnail-area">
+                                                    <a href="#" title="이미지 제목">
+											<img src="/images/cam/sample.png" class="img-thumbnail">
+										</a>
+                                                </div>
+                                            </td>
+                                            <td class="text-center vam"><%=Item.CUST_CTN%></td>
+                                            <td class="text-center vam"><%=Item.CUST_NM%></td>
+                                            <td class="text-center vam"><%=Item.CUST_DEPT_NM%></td>
+                                            <td class="text-center vam"><%=Item.STATUS%></td>
+                                            <td class="text-center vam">테스트</td>
+                                            <td class="text-center vam"><%=Item.INSERT_DATE%></td>
+                                            <td class="text-center vam"><%=Item.UPDATE_DATE%></td>
+                                        </tr>
+                                        <%
+				 }
+			 }
+			%>
+                            </tbody>
+                        </table>
+                        <!-- /table -->
+                    </div>
+                    <!-- /grid-wrap -->
+
+                    <div class="text-center">
+                        <nav class="pagination" id="paging">
+
+                        </nav>
+                    </div>
+                    <!-- /pagination -->
+
+                </section>
+                <!-- /page-content -->
+            </div>
+            <!-- /frame-container -->
+            <!--Aside
+
+            <aside class="right on">
+            -->
+            <aside class="right">
+                <button type="button" class="btn btn-icon">열림</button>
+                <article class="aside-list on">
+                    <h3 class="title" tabindex="0" id="leftTitle000">지도</h3>
+                    <div class="content map" id="map" style="height:200px">
+                    </div>
+                </article>
+                <article class="aside-list on">
+                    <h3 class="title" tabindex="0">발신단말정보</h3>
+                    <div class="content info">
+                        <ul class="dot-list">
+                            <li>성명 : <span class="color-blue" id="infoName">홍길동</span></li>
+                            <li>무서명 : <span class="color-blue" id="infoDept">설비환경PT팀</span></li>
+                            <li>촬영유형 : <span class="color-blue" id="infopType">일반촬영</span></li>
+                            <li>해상도 : <span class="color-blue" id="inforResolution">Full HD</span></li>
+                            <li>bit Rate : <span class="color-blue" id="infoBitRate">5.6 Mbps</span></li>
+                            <li>촬영시작 : <span class="color-blue" id="infoStart">2017-05-10 11:22:33 </span></li>
+                            <li>촬영시간 : <span class="color-blue" id="infoTime">00:11:22</span></li>
+                        </ul>
+                    </div>
+                </article>
+                <article class="aside-list on">
+                    <h3 class="title" tabindex="0">영상전달설정<span id="stbCount">0</span>)</h3>
+                    <div class="content info">
+                        <ul class="dot-list" id="stbList">
+                            <li>등록된 내용이 없습니다.</li>
+                        </ul>
+                        <button type="button" class="btn btn-icon plus">추가</button>
+                    </div>
+                </article>
+            </aside>
+            <!--//Aside-->
+
+            <div tabindex="-1" class="modal fade" id="myModal" role="dialog">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header dark">
+                            <button class="close dark" aria-label="Close" type="button" data-dismiss="modal"><span aria-hidden="true">×</span></button>
+                            <h1 class="modal-title">이미지 제목</h1>
+                        </div>
+                        <div class="modal-body">
+
+                        </div>
+                        <!--
+					<div class="modal-footer text-center">
+						<button class="btn btn-darkgray btn-sm" data-dismiss="modal">확인</button>
+					</div>
+					-->
+                    </div>
+                </div>
+            </div>
+            <!-- /modal -->
+            <div class="aside_dept" style="left: 1994px; top: 400px; background-color:rgba(85, 145, 139, 0.17);position: fixed;">
+                <h3 class="title" tabindex="0">영상전달설정</h3>
+                <div class="col-xs-9">
+                    <div class="sub-header">
+                        <h4>채널 사용자</h4>
+                    </div>
+                    <div class="panel panel-default">
+                        <div class="panel-body" style="overflow: auto; height: 220px; width:1000px">
+                            <div id="jstree01" style="float:left; width:200px">
+                                <ul>
+                                    <li>설비환경PI
+                                        <ul>
+                                            <li>김영진 팀장</li>
+                                            <li>김상태 책임</li>
+                                            <li>여태선 책임</li>
+                                            <li>신재형 책임</li>
+                                        </ul>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="" style="width: 450px; float:left">
+                                <form action="" class="search-wrap">
+                                    <fieldset>
+                                        <table class="table">
+                                            <caption class="sr-only-lgd">조회조건</caption>
+                                            <colgroup>
+                                                <col width="100">
+                                                <col width="200">
+                                                <col width="5">
+                                                <col width="500">
+                                                <col width="280">
+                                                <col width="*">
+                                            </colgroup>
+                                            <thead>
+                                                <tr>
+                                                    <th><label for="search_01">조회조건</label></th>
+                                                    <td>
+                                                        <select class="form-control input-sm" id="search_01">
+                                                    <option value="">선택</option>
+                                                    <option>발신번호</option>
+                                                    <option>성명</option>
+                                                    <option>부서명</option>
+                                                    <option>촬영유형</option>
+                                                    <option>채널명</option>
+                                                </select>
+                                                    </td>
+                                                    <td></td>
+                                                    <td><input type="text" class="form-control input-sm" id="search_02" placeholder="."></td>
+                                                    <td><button class="btn btn-lgd btn-sm" type="button">조회</button></td>
+                                                    <td></td>
+                                                </tr>
+                                            </thead>
+                                        </table>
+                                    </fieldset>
+                                </form>
+                                <div id="jstree02">
+                                    <ul>
+                                        <li>아무개</li>
+                                        <li>아무개</li>
+                                        <li>아무개</li>
+                                    </ul>
+                                </div>
+                                <button type="button" class="btn btn-default btn-sm ico-lgd" data-toggle="modal" data-target="#add" style="float:right"><span class="fa fa-plus"></span> 추가</button>
+                            </div>
+                            <!-- /search-wrap -->
+                        </div>
+                    </div>
+                    <div class="sub-header">
+                        <h4>비채널 사용자</h4>
+                    </div>
+                    <div class="panel panel-default">
+                        <div id="jstree03" style="width:200px">
+                            <ul>
+                                <li>개발시험
+                                    <ul>
+                                        <li>김** 팀장</li>
+                                        <li>이** 책임</li>
+                                        <li>신** 사원</li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="" style="float :right">
+                            <button class="btn btn-lgd btn-sm" type="submit">확인</button>
+                            <button class="btn btn-lgd btn-sm" type="submit">취소</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+    </div>
+    <!-- /wrap -->
+
+    <% include ../common/scripts %>
+        <script src="/plugins/notification/notification.min.js"></script>
+        <script src="/javascript/c_status.js"></script>
+        <script src="/plugins/jstree/js/jstree.js"></script>
+        <script type="text/javascript">
+            var data = {};
+            if (getParameterByName('page')) {
+                data.page = getParameterByName('page');
+            }
+            if (getParameterByName('searchKey')) {
+                data.searchKey = getParameterByName('searchKey');
+            }
+            if (getParameterByName('searchVal')) {
+                data.searchVal = getParameterByName('searchVal');
+            }
+            common_list.pagination(getParameterByName('page'), 10, '/status_count', data);
+        </script>
+
+        <!-- 페이지 스크립트 -->
+        <script>
+            $(function() {
+                // UI init
+                uxp.searchBox();
+
+                //gnb scroll
+                $(window).resize(function() {
+                    uxp.autoHeight('.grid-wrap', 300);
+                }).resize();
+
+                common.aside();
+
+            });
+        </script>
+        <script>
+            for(i=1 ; i<4;i++){
+            $('#jstree0'+i).jstree({
+                "plugins": ['checkbox'],
+                "core": {
+                    "themes": {
+                        "icons": false
+                    }
+                }
+            });
+            }
+            $('#realtime_list tbody tr').click(function() {
+                var CUST_CTN = $(this).children().eq(2).text();
+                var INSERT_DATE = $(this).children().eq(7).text();
+                INSERT_DATE = INSERT_DATE.replace(/[ \{\}\[\]\/?.,;:|\)*~`!^\-_+┼<>@\#$%&\'\"\\(\=]/gi, "");
+                console.log(CUST_CTN);
+                console.log(INSERT_DATE);
+
+                $.ajax({
+                    url: '/status_ch_info',
+                    type: 'GET',
+                    data: {
+                        CUST_CTN: CUST_CTN,
+                        INSERT_DATE: INSERT_DATE
+                    },
+                    success: function(data) {
+                        $('#infoName').text(data[0].CUST_NM);
+                        $('#infoDept').text(data[0].CUST_DEPT_NM);
+                        $('#infopType').text(data[0].CUST_NM);
+                        $('#inforResolution').text(data[0].WIDTH + "*" + data.HEIGHT);
+                        $('#infoBitRate').text(data[0].BIT_RATE / (1024 * 1024) + "mbps");
+                        $('#infoStart').text(data[0].INSERT_DATE);
+                        $('#infoTime').text(data[0].UPDATE_DATE);
+
+                    },
+                    error: function(request, status, error) {
+                        bootbox.alert(request, status, error);
+                    }
+                });
+                $.ajax({
+                    url: '/status_user_info',
+                    type: 'GET',
+                    data: {
+                        CUST_CTN: CUST_CTN,
+                        INSERT_DATE: INSERT_DATE
+                    },
+                    success: function(data) {
+                        console.log(data);
+                        $('#jstree01 ul').empty();
+                        $('#jstree03 ul').empty();
+                        var channelUser = "";
+                        var UnChannelUser = "";
+
+                            $(data).each(function(index, item) {
+                                if(item.DEV_NM){
+                                        channelUser +="<li>"+ item.EMPLOYEE_NAME+" " +item.TITLE_NAME+"</li>";
+                                }else{
+                                    UnChannelUser +="<li>"+item.EMPLOYEE_NAME+" " +item.TITLE_NAME+ "</li>";
+                                }
+                            });
+                            $("#jstree01 ul").append(channelUser);
+                            $("#jstree03 ul").append(UnChannelUser);
+
+                    },
+                    error: function(request, status, error) {
+                        bootbox.alert(request, status, error);
+                    }
+                });
+
+            });
+
+        </script>
+        <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCd2Esy-V12fyWhbLCldf6VD65Y_plGiq4&callback=initMap"></script>
+
+</body>
+
+</html>
