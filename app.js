@@ -96,5 +96,5 @@ app.use("/", require('./routes/channel'));
 //---------------------------------------------------------------------------------------------
 io.attach(server);
 
-logger.info("WEB Server Start");
-console.log("WEB Server Start");
+logger.info("WEB Server Start !!");
+console.log("WEB Server Start !!");
