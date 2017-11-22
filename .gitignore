@@ -1,1 +1,6 @@
+<<<<<<< HEAD
 app.js
+=======
+node_modules/
+test.js
+>>>>>>> 9dcc5c895f21143c659c8fafddbdd4fab8e12825

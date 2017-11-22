@@ -96,5 +96,9 @@ app.use("/", require('./routes/channel'));
 //---------------------------------------------------------------------------------------------
 io.attach(server);
 
+<<<<<<< HEAD
 logger.info("WEB Server Start (**)");
+=======
+logger.info("WEB Server Start (*)");
+>>>>>>> 9dcc5c895f21143c659c8fafddbdd4fab8e12825
 console.log("WEB Server Start $$");
